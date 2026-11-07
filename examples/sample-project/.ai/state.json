@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "1.0",
+  "project": "link-expiry",
+  "status": "IMPLEMENTING",
+  "featureBranch": "feature/link-expiry",
+  "baseBranch": "main",
+  "protectedBranches": [
+    "main",
+    "master"
+  ],
+  "activeSlice": "02",
+  "sliceBranch": "feature/link-expiry-slice-02",
+  "notesBranch": "feature/link-expiry-shipyard",
+  "brainstormBreadth": 1,
+  "gates": [
+    {
+      "gate": "P0",
+      "by": "vineeth",
+      "at": "2026-10-12T09:00:00+00:00",
+      "slice": null
+    },
+    {
+      "gate": "P4",
+      "by": "vineeth",
+      "at": "2026-10-12T15:30:00+00:00",
+      "slice": null
+    },
+    {
+      "gate": "P8",
+      "by": "vineeth",
+      "at": "2026-10-13T10:00:00+00:00",
+      "slice": null
+    },
+    {
+      "gate": "MERGE",
+      "by": "vineeth",
+      "at": "2026-10-14T16:00:00+00:00",
+      "slice": "01"
+    }
+  ]
+}

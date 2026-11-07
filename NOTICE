@@ -1,0 +1,31 @@
+shipyard-copilot
+Copyright (c) 2026 The Shipyard authors
+Licensed under the MIT License (see LICENSE).
+
+This project adapts Shipyard (https://github.com/vineethvarghese/shipyard, MIT License), a Claude Code plugin,
+for GitHub Copilot: Copilot CLI, the Copilot coding agent and Copilot agent mode in IDEs. The agents, skills,
+registry, contracts, scripts, hooks and workflows are ported from Shipyard; the credits Shipyard records in its
+own NOTICE apply here in full:
+
+1. Elephant/goldfish method
+   https://github.com/vshvedov/elephant-goldfish — MIT License.
+   The P2 brainstorm and the cold readiness check of each slice spec are adapted from this method.
+
+2. Grilling, domain-modelling, specification and TDD skills
+   https://github.com/mattpocock/skills — MIT License, Copyright (c) 2026 Matt Pocock.
+   The P4 grill, the inline glossary and the three-part decision test, the user-story and seams-under-test
+   sections of the spec, and the seam-first test discipline are adapted from these skills.
+
+3. "Cranky Old Sam" reviewer persona — MIT License.
+   The simplicity reviewer's voice is adapted from this persona.
+
+4. Contributed review profiles: the code reviewer and the security reviewer are adapted from contributed
+   review agents.
+
+5. Books — ideas paraphrased, never quoted: Ousterhout (A Philosophy of Software Design), Gregg (Systems
+   Performance), Evans (Domain-Driven Design).
+
+6. Inspiration: Akash Singhal (https://github.com/akashsinghal).
+
+GitHub, GitHub Copilot and Visual Studio Code are trademarks of their owners. Their mention implies no
+endorsement.

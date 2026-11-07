@@ -1,0 +1,23 @@
+flowchart TD
+    subgraph L1["Layer 1: Workflow"]
+        coord["Coordinator, the main session"]
+        wf["Saved workflows: discover, plan, slice"]
+    end
+    subgraph L2["Layer 2: Role registry"]
+        reg["registry/roles.json: role to agent, compute, routing, contract"]
+    end
+    subgraph CT["Between layers 1 and 3: Contracts"]
+        con["contracts/*.schema.json: the shape of every return"]
+    end
+    subgraph L3["Layer 3: Agent shells"]
+        ag["agents/*.md: identity, limits, inputs per mode"]
+    end
+    subgraph L4["Layer 4: Capability skills"]
+        sk["skills/ability-name: expertise, versioned, with evals"]
+    end
+    coord -->|"launches"| wf
+    wf -->|"asks for a role"| reg
+    reg -->|"names the agent and compute"| ag
+    wf -->|"passes the schema"| con
+    ag -->|"returns a block that matches"| con
+    ag -->|"loads"| sk

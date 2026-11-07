@@ -1,0 +1,34 @@
+flowchart TD
+    you(["You"])
+    coord["shipyard-coordinator"]
+    you ---|"chat only"| coord
+    subgraph WF["Dynamic workflows (CLI) or phase prompt files (IDE, cloud)"]
+        wd["discover: P1 to P3"]
+        wp["plan: P5 to P7"]
+        ws["slice: P9, one slice"]
+    end
+    subgraph PL["Planning"]
+        di["discovery"]
+        gf["goldfish"]
+        ar["architect"]
+        pn["planner"]
+    end
+    subgraph BU["Build"]
+        im["implementer"]
+        ve["verifier"]
+    end
+    subgraph RV["Review"]
+        cr["code-reviewer"]
+        sr["security-reviewer"]
+        ct["contract-reviewer"]
+        ir["integration-reviewer"]
+        rr["reliability-reviewer"]
+        sp["simplicity-reviewer"]
+    end
+    coord -->|"copilot workflow run, or the prompt file"| WF
+    coord -->|"agent tool, agents: list only"| PL
+    WF -->|"agent calls"| PL
+    WF -->|"agent calls"| BU
+    WF -->|"agent calls"| RV
+    note["Specialists have agents: [] and no agent tool, so they call no one"]
+    RV -.- note

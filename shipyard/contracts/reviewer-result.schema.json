@@ -1,0 +1,211 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://shipyard.dev/contracts/reviewer-result.schema.json",
+  "title": "Reviewer result",
+  "description": "Return block of every reviewer: code, security, contract, integration, reliability and simplicity (the architect uses architect-result). Full findings also go to the findings file.",
+  "x-contract-version": "1.0.1",
+  "type": "object",
+  "properties": {
+    "reviewer": {
+      "type": "string"
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "PLAN",
+        "SLICE",
+        "TEST_PLAN",
+        "RECHECK"
+      ]
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "APPROVE",
+        "REVISE",
+        "PASS",
+        "CHANGES_REQUIRED",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "findingsFile": {
+      "type": "string"
+    },
+    "counts": {
+      "type": "object",
+      "properties": {
+        "BLOCKING": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "MAJOR": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "MINOR": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "NOTE": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "BLOCKING",
+        "MAJOR",
+        "MINOR",
+        "NOTE"
+      ],
+      "additionalProperties": false
+    },
+    "mostSerious": {
+      "type": "string"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "<reviewer-short>-NNN, e.g. code-007"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "BLOCKING",
+              "MAJOR",
+              "MINOR",
+              "NOTE"
+            ]
+          },
+          "category": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string",
+            "description": "path:line-range | 'PR metadata' | 'whole slice' | planning artifact path"
+          },
+          "finding": {
+            "type": "string",
+            "description": "What is wrong, stated as a fact"
+          },
+          "whyItMatters": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Code, command output, contract, ADR or doc reference a human can open. Mandatory"
+          },
+          "requiredResolution": {
+            "type": "string",
+            "description": "The minimum change that clears the finding"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "HIGH",
+              "MEDIUM",
+              "LOW"
+            ]
+          },
+          "owner": {
+            "type": "string",
+            "enum": [
+              "implementer",
+              "verifier",
+              "architect",
+              "planner",
+              "human"
+            ]
+          },
+          "reporters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "FIXED",
+              "REBUTTED",
+              "ACCEPTED_BY_HUMAN"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "severity",
+          "category",
+          "location",
+          "finding",
+          "whyItMatters",
+          "evidence",
+          "requiredResolution",
+          "confidence",
+          "owner",
+          "reporters",
+          "status"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "extras": {
+      "type": "object",
+      "description": "Role-specific fields, e.g. compatibility class, plausibility counts, removable %, migration signal. In TEST_PLAN mode the code-reviewer sets testPlanStatus to the Status line it reads back after its edit (APPROVED on an APPROVE verdict).",
+      "additionalProperties": true
+    },
+    "abilityVersions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "capability skill name → version used"
+    },
+    "humanInputRequested": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "question": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "string"
+        },
+        "recommendation": {
+          "type": "string"
+        },
+        "blocked": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "question",
+        "evidence",
+        "recommendation",
+        "blocked"
+      ],
+      "additionalProperties": false,
+      "description": "HUMAN_INPUT_REQUESTED block for the coordinator, or null"
+    }
+  },
+  "required": [
+    "reviewer",
+    "mode",
+    "verdict",
+    "findingsFile",
+    "counts",
+    "mostSerious",
+    "findings",
+    "extras",
+    "abilityVersions",
+    "humanInputRequested"
+  ],
+  "additionalProperties": false
+}

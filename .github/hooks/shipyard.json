@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "matcher": "bash|shell|powershell|execute|exec|sh|terminal|run_in_terminal|runInTerminal|run_command|runCommand|run_commands|runCommands|run_terminal_cmd|execute_command|run_shell_command|shell_command",
+        "bash": "python3 shipyard/scripts/hooks/protect-branches.py",
+        "powershell": "python3 shipyard/scripts/hooks/protect-branches.py",
+        "cwd": ".",
+        "timeoutSec": 10
+      },
+      {
+        "type": "command",
+        "matcher": "bash|shell|powershell|execute|exec|sh|terminal|run_in_terminal|runInTerminal|run_command|runCommand|run_commands|runCommands|run_terminal_cmd|execute_command|run_shell_command|shell_command",
+        "bash": "python3 shipyard/scripts/hooks/readonly-bash.py",
+        "powershell": "python3 shipyard/scripts/hooks/readonly-bash.py",
+        "cwd": ".",
+        "timeoutSec": 10
+      },
+      {
+        "type": "command",
+        "matcher": "bash|shell|powershell|execute|exec|sh|terminal|run_in_terminal|runInTerminal|run_command|runCommand|run_commands|runCommands|run_terminal_cmd|execute_command|run_shell_command|shell_command|create|write|write_file|writeFile|create_file|createFile|write_to_file|new_file|save_file|edit|str_replace|str_replace_editor|str_replace_based_edit_tool|apply_patch|edit_file|editFile|edit_files|editFiles|insert_edit_into_file|replace_string_in_file|multi_edit|multiEdit|insert|patch|text_editor|editor|notebook_edit|edit_notebook_file",
+        "bash": "python3 shipyard/scripts/hooks/write-scope.py",
+        "powershell": "python3 shipyard/scripts/hooks/write-scope.py",
+        "cwd": ".",
+        "timeoutSec": 10
+      },
+      {
+        "type": "command",
+        "matcher": "bash|shell|powershell|execute|exec|sh|terminal|run_in_terminal|runInTerminal|run_command|runCommand|run_commands|runCommands|run_terminal_cmd|execute_command|run_shell_command|shell_command|create|write|write_file|writeFile|create_file|createFile|write_to_file|new_file|save_file|edit|str_replace|str_replace_editor|str_replace_based_edit_tool|apply_patch|edit_file|editFile|edit_files|editFiles|insert_edit_into_file|replace_string_in_file|multi_edit|multiEdit|insert|patch|text_editor|editor|notebook_edit|edit_notebook_file",
+        "bash": "python3 shipyard/scripts/hooks/test-plan-gate.py",
+        "powershell": "python3 shipyard/scripts/hooks/test-plan-gate.py",
+        "cwd": ".",
+        "timeoutSec": 10
+      },
+      {
+        "type": "command",
+        "matcher": "create|write|write_file|writeFile|create_file|createFile|write_to_file|new_file|save_file|edit|str_replace|str_replace_editor|str_replace_based_edit_tool|apply_patch|edit_file|editFile|edit_files|editFiles|insert_edit_into_file|replace_string_in_file|multi_edit|multiEdit|insert|patch|text_editor|editor|notebook_edit|edit_notebook_file",
+        "bash": "python3 shipyard/scripts/hooks/secrets-guard.py",
+        "powershell": "python3 shipyard/scripts/hooks/secrets-guard.py",
+        "cwd": ".",
+        "timeoutSec": 10
+      },
+      {
+        "type": "command",
+        "matcher": "view|read|read_file|readFile|cat|open_file|get_file_contents|view_file|notebook_read|read_notebook|grep|rg|ripgrep|search|grep_search|grepSearch|text_search|textSearch|search_files|searchFiles|codebase|semantic_search|semanticSearch|search_code|list_code_usages|listCodeUsages|usages|glob|file_search|fileSearch|find_files|findFiles|list_dir|listDir|list_files|listFiles|ls|find|list_directory|listDirectory|directory_tree",
+        "bash": "python3 shipyard/scripts/hooks/goldfish-blinders.py",
+        "powershell": "python3 shipyard/scripts/hooks/goldfish-blinders.py",
+        "cwd": ".",
+        "timeoutSec": 10
+      },
+      {
+        "type": "command",
+        "matcher": "task|agent|run_subagent|runSubagent|custom-agent|custom_agent|customAgent|spawn_agent|spawnAgent|delegate|subagent|run_agent|runAgent|invoke_agent|invokeAgent|delegate_task|delegateTask",
+        "bash": "python3 shipyard/scripts/hooks/brief-check.py",
+        "powershell": "python3 shipyard/scripts/hooks/brief-check.py",
+        "cwd": ".",
+        "timeoutSec": 10
+      }
+    ],
+    "subagentStart": [
+      {
+        "type": "command",
+        "bash": "python3 shipyard/scripts/hooks/findings-gate.py --event subagentStart",
+        "powershell": "python3 shipyard/scripts/hooks/findings-gate.py --event subagentStart",
+        "cwd": ".",
+        "timeoutSec": 10
+      }
+    ],
+    "subagentStop": [
+      {
+        "type": "command",
+        "bash": "python3 shipyard/scripts/hooks/findings-gate.py --event subagentStop",
+        "powershell": "python3 shipyard/scripts/hooks/findings-gate.py --event subagentStop",
+        "cwd": ".",
+        "timeoutSec": 15
+      }
+    ]
+  }
+}

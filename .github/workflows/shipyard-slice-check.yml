@@ -1,0 +1,75 @@
+name: shipyard-slice-check
+
+# Required status check on every pull request into a feature branch: the slice's touch sets, the test plan order,
+# the findings files and EVIDENCE.md (python3 shipyard/scripts/check.py --pr), then the project's recorded test
+# command. `.ai/` is restored from the notes branch `<feature>-shipyard`; it is never part of the pull request.
+on:
+  pull_request:
+    branches:
+      - "feature/**"
+
+permissions:
+  contents: read
+
+jobs:
+  shipyard-slice-check:
+    name: shipyard-slice-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        if: ${{ hashFiles('package.json') != '' }}
+        with:
+          node-version: "22"
+
+      - name: Restore .ai/ from the notes branch
+        env:
+          BASE: ${{ github.base_ref }}
+        run: |
+          set -eu
+          NOTES="${BASE}-shipyard"
+          mkdir -p .git/info
+          grep -qx '/.ai/' .git/info/exclude 2>/dev/null || echo '/.ai/' >> .git/info/exclude
+          if git fetch --no-tags origin "+refs/heads/${NOTES}:refs/remotes/origin/${NOTES}"; then
+            git branch -f "${NOTES}" "refs/remotes/origin/${NOTES}"
+            python3 shipyard/scripts/shipyard_state.py restore --from "${NOTES}"
+          else
+            echo "::error::No notes branch ${NOTES}: Shipyard state is missing, so the slice cannot be checked."
+            exit 1
+          fi
+
+      - name: Shipyard pull-request checks
+        env:
+          BASE: ${{ github.base_ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 shipyard/scripts/check.py --pr --base "origin/${BASE}" --head "${HEAD_SHA}"
+
+      - name: Run the project's recorded test command
+        run: |
+          set -eu
+          if [ ! -f .ai/PROJECT.md ]; then
+            echo "No .ai/PROJECT.md; nothing recorded."; exit 0
+          fi
+          # The coordinator records the canonical command under `## Framework configuration` as:
+          #   Test command: `<command>`
+          CMD="$(python3 - <<'PY'
+          import re, pathlib
+          text = pathlib.Path(".ai/PROJECT.md").read_text(encoding="utf-8")
+          m = re.search(r"^[-* ]*\**Test command\**:\**\s*`([^`]+)`", text, re.M)
+          print(m.group(1) if m else "")
+          PY
+          )"
+          if [ -z "$CMD" ]; then
+            echo "::warning::No 'Test command: `...`' line in .ai/PROJECT.md; the test step was skipped."
+            exit 0
+          fi
+          echo "Running: $CMD"
+          bash -c "$CMD"

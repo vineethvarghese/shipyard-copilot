@@ -1,0 +1,37 @@
+flowchart LR
+    subgraph WHO["Who writes"]
+        co["coordinator"]
+        di["discovery"]
+        ar["architect"]
+        pl["planner"]
+        ve["verifier"]
+        cr["code-reviewer"]
+        rv["other reviewers"]
+    end
+    subgraph AI[".ai/ folder in your repo"]
+        st["state.json and PROJECT.md"]
+        pn["planning/, GLOSSARY.md"]
+        arch["ARCHITECTURE.md, INVARIANTS.md, decisions/, formal/"]
+        dp["DELIVERY_PLAN.md and slices/NN/SLICE.md"]
+        tp["slices/NN/TEST_PLAN.md"]
+        fi["slices/NN/findings/"]
+        ev["slices/NN/EVIDENCE.md"]
+        ph["PLAN.HUMAN.md"]
+        rh["slices/NN/REVIEW.HUMAN.md"]
+    end
+    you(["You read these"])
+    co --> st
+    co --> ev
+    co --> ph
+    co --> rh
+    di --> pn
+    ar --> arch
+    pl --> dp
+    ve --> tp
+    cr -->|"status line only"| tp
+    cr --> fi
+    rv --> fi
+    ph --> you
+    rh --> you
+    classDef human fill:#fde68a,stroke:#b45309,color:#000000
+    class ph,rh,you human

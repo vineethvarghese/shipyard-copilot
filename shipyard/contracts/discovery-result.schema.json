@@ -1,0 +1,280 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://shipyard.dev/contracts/discovery-result.schema.json",
+  "title": "Discovery result",
+  "description": "Return block of discovery (SCAN, ELEPHANT, DRAFT, SYNTHESIZE, QUESTIONS, GRILL).",
+  "x-contract-version": "1.1.0",
+  "type": "object",
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": [
+        "SCAN",
+        "ELEPHANT",
+        "DRAFT",
+        "SYNTHESIZE",
+        "QUESTIONS",
+        "GRILL"
+      ]
+    },
+    "artifactsWritten": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "facts": {
+      "type": "object",
+      "properties": {
+        "SPECIFIED": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "DERIVED": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ASSUMED": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "UNRESOLVED": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "SPECIFIED",
+        "DERIVED",
+        "ASSUMED",
+        "UNRESOLVED"
+      ],
+      "additionalProperties": false
+    },
+    "consumersFound": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "validationTiers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "environment": {
+            "type": "string",
+            "enum": [
+              "LOCAL",
+              "SHARED"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "environment"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "topConcepts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "lensesThatProposedIt": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "title",
+          "summary",
+          "lensesThatProposedIt"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "disagreements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "question": {
+            "type": "string"
+          },
+          "whyItMatters": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recommendation": {
+            "type": "string"
+          },
+          "blocking": {
+            "type": "boolean"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "concept",
+              "scope",
+              "term",
+              "decision",
+              "invariant",
+              "fact"
+            ],
+            "description": "What the answer settles. fact questions are never asked; discovery settles them from the repository."
+          },
+          "dependsOn": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Gap ids that must be answered or settled before this one can be asked (the design tree). Empty or absent = ready now."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "ANSWERED",
+              "SETTLED",
+              "DEFERRED"
+            ],
+            "description": "OPEN = not yet asked or answered; ANSWERED = the human answered; SETTLED = discovery settled it from evidence; DEFERRED = left at its default by the human."
+          }
+        },
+        "required": [
+          "id",
+          "question",
+          "whyItMatters",
+          "evidence",
+          "options",
+          "recommendation",
+          "blocking"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "frontier": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "GRILL and QUESTIONS: the ids of the OPEN gaps whose dependsOn are all ANSWERED or SETTLED, highest leverage first. Empty means shared understanding is reached."
+    },
+    "round": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "GRILL: the grill round this result recomputed the frontier for."
+    },
+    "glossaryTerms": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Terms added or sharpened in .ai/GLOSSARY.md by this call."
+    },
+    "decisionCandidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "gapId": {
+            "type": "string"
+          },
+          "decision": {
+            "type": "string"
+          },
+          "hardToReverse": {
+            "type": "boolean"
+          },
+          "surprising": {
+            "type": "boolean"
+          },
+          "tradeoff": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "gapId",
+          "decision",
+          "hardToReverse",
+          "surprising",
+          "tradeoff"
+        ],
+        "additionalProperties": false
+      },
+      "description": "GRILL: answers that may deserve a short-form ADR. The coordinator writes one only when all three flags are true."
+    },
+    "highestLeverageQuestion": {
+      "type": "string"
+    },
+    "couldNotInspect": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "humanInputRequested": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "question": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "string"
+        },
+        "recommendation": {
+          "type": "string"
+        },
+        "blocked": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "question",
+        "evidence",
+        "recommendation",
+        "blocked"
+      ],
+      "additionalProperties": false,
+      "description": "HUMAN_INPUT_REQUESTED block for the coordinator, or null"
+    }
+  },
+  "required": [
+    "mode",
+    "artifactsWritten",
+    "couldNotInspect",
+    "humanInputRequested"
+  ],
+  "additionalProperties": false
+}

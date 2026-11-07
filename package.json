@@ -1,0 +1,15 @@
+{
+  "name": "shipyard-copilot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shipyard for GitHub Copilot: agents, skills, hooks and dynamic workflows. No runtime dependencies.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test shipyard/tests/extensions/",
+    "check": "python3 shipyard/scripts/check.py"
+  }
+}

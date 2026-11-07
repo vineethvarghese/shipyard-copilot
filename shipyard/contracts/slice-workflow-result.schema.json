@@ -1,0 +1,312 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://shipyard.dev/contracts/slice-workflow-result.schema.json",
+  "title": "Slice workflow result",
+  "description": "What /shipyard:slice returns to the coordinator.",
+  "x-contract-version": "1.1.0",
+  "type": "object",
+  "properties": {
+    "slice": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "READY_FOR_HUMAN",
+        "ESCALATE",
+        "NEEDS_SHARED_APPROVAL",
+        "BLOCKED_REVIEWER",
+        "BLOCKED"
+      ]
+    },
+    "rounds": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "reason": {
+      "type": "string"
+    },
+    "commit": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "verify": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": true
+    },
+    "testPlan": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": true
+    },
+    "reviewersRouted": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string"
+          },
+          "because": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "because"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "reviewersNotRouted": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string"
+          },
+          "because": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "because"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "<reviewer-short>-NNN, e.g. code-007"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "BLOCKING",
+              "MAJOR",
+              "MINOR",
+              "NOTE"
+            ]
+          },
+          "category": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string",
+            "description": "path:line-range | 'PR metadata' | 'whole slice' | planning artifact path"
+          },
+          "finding": {
+            "type": "string",
+            "description": "What is wrong, stated as a fact"
+          },
+          "whyItMatters": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Code, command output, contract, ADR or doc reference a human can open. Mandatory"
+          },
+          "requiredResolution": {
+            "type": "string",
+            "description": "The minimum change that clears the finding"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "HIGH",
+              "MEDIUM",
+              "LOW"
+            ]
+          },
+          "owner": {
+            "type": "string",
+            "enum": [
+              "implementer",
+              "verifier",
+              "architect",
+              "planner",
+              "human"
+            ]
+          },
+          "reporters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "FIXED",
+              "REBUTTED",
+              "ACCEPTED_BY_HUMAN"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "severity",
+          "category",
+          "location",
+          "finding",
+          "whyItMatters",
+          "evidence",
+          "requiredResolution",
+          "confidence",
+          "owner",
+          "reporters",
+          "status"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "openFindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "<reviewer-short>-NNN, e.g. code-007"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "BLOCKING",
+              "MAJOR",
+              "MINOR",
+              "NOTE"
+            ]
+          },
+          "category": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string",
+            "description": "path:line-range | 'PR metadata' | 'whole slice' | planning artifact path"
+          },
+          "finding": {
+            "type": "string",
+            "description": "What is wrong, stated as a fact"
+          },
+          "whyItMatters": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Code, command output, contract, ADR or doc reference a human can open. Mandatory"
+          },
+          "requiredResolution": {
+            "type": "string",
+            "description": "The minimum change that clears the finding"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "HIGH",
+              "MEDIUM",
+              "LOW"
+            ]
+          },
+          "owner": {
+            "type": "string",
+            "enum": [
+              "implementer",
+              "verifier",
+              "architect",
+              "planner",
+              "human"
+            ]
+          },
+          "reporters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "FIXED",
+              "REBUTTED",
+              "ACCEPTED_BY_HUMAN"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "severity",
+          "category",
+          "location",
+          "finding",
+          "whyItMatters",
+          "evidence",
+          "requiredResolution",
+          "confidence",
+          "owner",
+          "reporters",
+          "status"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "humanInputRequests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "abilityVersions": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "authorNotes": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Optional. What the authors reported beyond fixes: architectureConcerns, testDisputes, rulings (the architect's answers to them), outOfScopeNoticed, stubsRemaining, acNotSatisfied. The coordinator copies these into EVIDENCE.md and the merge brief."
+    },
+    "humanChanges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      },
+      "description": "Optional. The merge-gate change requests this run applied (args.humanChanges), as findings."
+    }
+  },
+  "required": [
+    "slice",
+    "status",
+    "rounds",
+    "reason",
+    "commit",
+    "verify",
+    "testPlan",
+    "reviewersRouted",
+    "reviewersNotRouted",
+    "findings",
+    "openFindings",
+    "humanInputRequests",
+    "abilityVersions"
+  ],
+  "additionalProperties": false
+}

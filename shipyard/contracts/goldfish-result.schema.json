@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://shipyard.dev/contracts/goldfish-result.schema.json",
+  "title": "Goldfish result",
+  "description": "Return block of a goldfish (BRAINSTORM with one lens, or READINESS on one SLICE.md).",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": [
+        "BRAINSTORM",
+        "READINESS"
+      ]
+    },
+    "lens": {
+      "type": "string"
+    },
+    "concepts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string"
+          },
+          "risks": {
+            "type": "string"
+          },
+          "relativeSize": {
+            "type": "string",
+            "enum": [
+              "S",
+              "M",
+              "L"
+            ]
+          }
+        },
+        "required": [
+          "title",
+          "summary",
+          "why",
+          "risks",
+          "relativeSize"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "readiness": {
+      "type": "string",
+      "enum": [
+        "READY",
+        "NOT_READY",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "mode",
+    "lens",
+    "concepts",
+    "readiness",
+    "questions"
+  ],
+  "additionalProperties": false
+}

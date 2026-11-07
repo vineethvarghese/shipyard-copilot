@@ -1,0 +1,9 @@
+flowchart LR
+    none["C-10 none: four-line invariants, checked by reading"]
+    inv["invariants: plain-English block, satisfied-by and violated-by sequences, state tables"]
+    prop["properties: a property test or assertion per invariant, in the normal suite"]
+    mc["model-checked: a small model per concurrency invariant, run by the reliability reviewer"]
+    none --> inv --> prop --> mc
+    mc --> trace["Counterexample rendered as a short story and a step table"]
+    classDef human fill:#fde68a,stroke:#b45309,color:#000000
+    class trace human

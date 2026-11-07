@@ -1,0 +1,409 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://shipyard.dev/contracts/verify-result.schema.json",
+  "title": "Verify result",
+  "description": "Return block of the verifier in VERIFY mode.",
+  "x-contract-version": "2.1.0",
+  "type": "object",
+  "properties": {
+    "slice": {
+      "type": "string"
+    },
+    "commit": {
+      "type": "string"
+    },
+    "testPlanStatus": {
+      "type": "string",
+      "enum": [
+        "APPROVED",
+        "DRAFT",
+        "MISSING",
+        "UNREADABLE"
+      ],
+      "description": "The Status line of .ai/slices/<id>/TEST_PLAN.md as read during this VERIFY run. The slice workflow stops unless it is APPROVED."
+    },
+    "scopeCheck": {
+      "type": "string",
+      "enum": [
+        "IN_SCOPE",
+        "DRIFT"
+      ]
+    },
+    "drift": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "build": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL"
+      ]
+    },
+    "staticAnalysis": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "unitTests": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "PASS",
+            "FAIL",
+            "NOT_APPLICABLE"
+          ]
+        },
+        "run": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failures": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "status",
+        "run",
+        "failures"
+      ],
+      "additionalProperties": false
+    },
+    "integrationTests": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "tiers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "environment": {
+            "type": "string",
+            "enum": [
+              "LOCAL",
+              "SHARED"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PASS",
+              "FAIL",
+              "NOT_RUN",
+              "AWAITING_APPROVAL"
+            ]
+          },
+          "why": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "environment",
+          "status",
+          "why"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "commandUsed": {
+      "type": "string"
+    },
+    "testsAdded": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "acVerified": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ac": {
+            "type": "string"
+          },
+          "test": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ac",
+          "test"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "acNotVerified": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ac": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ac",
+          "why"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "invariantsChecked": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "formal": {
+      "type": "object",
+      "properties": {
+        "tier": {
+          "type": "string",
+          "enum": [
+            "none",
+            "invariants",
+            "properties",
+            "model-checked"
+          ]
+        },
+        "checked": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "INV ids whose property test, assertion test or trace-replay test ran and passed"
+        },
+        "notRun": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "INV ids planned at this tier that could not be checked, each with the reason, e.g. \"INV-003: quint not installed\""
+        }
+      },
+      "required": [
+        "tier",
+        "checked",
+        "notRun"
+      ],
+      "additionalProperties": false,
+      "description": "Optional (since 2.1.0): what the C-10 formal tier produced in this run. Absent when C-10 is none."
+    },
+    "failureScenarios": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW"
+      ]
+    },
+    "confidenceReason": {
+      "type": "string"
+    },
+    "routingFacts": {
+      "type": "object",
+      "properties": {
+        "productionCode": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "boolean"
+            },
+            "evidence": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "value",
+            "evidence"
+          ],
+          "additionalProperties": false
+        },
+        "mechanicalOnly": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "boolean"
+            },
+            "evidence": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "value",
+            "evidence"
+          ],
+          "additionalProperties": false
+        },
+        "publicContract": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "boolean"
+            },
+            "evidence": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "value",
+            "evidence"
+          ],
+          "additionalProperties": false
+        },
+        "concurrency": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "boolean"
+            },
+            "evidence": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "value",
+            "evidence"
+          ],
+          "additionalProperties": false
+        },
+        "consumerVisible": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "boolean"
+            },
+            "evidence": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "value",
+            "evidence"
+          ],
+          "additionalProperties": false
+        },
+        "security": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "boolean"
+            },
+            "evidence": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "value",
+            "evidence"
+          ],
+          "additionalProperties": false
+        },
+        "config": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "boolean"
+            },
+            "evidence": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "value",
+            "evidence"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "productionCode",
+        "mechanicalOnly",
+        "publicContract",
+        "concurrency",
+        "consumerVisible",
+        "security",
+        "config"
+      ],
+      "additionalProperties": false
+    },
+    "humanInputRequested": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "question": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "string"
+        },
+        "recommendation": {
+          "type": "string"
+        },
+        "blocked": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "question",
+        "evidence",
+        "recommendation",
+        "blocked"
+      ],
+      "additionalProperties": false,
+      "description": "HUMAN_INPUT_REQUESTED block for the coordinator, or null"
+    }
+  },
+  "required": [
+    "slice",
+    "commit",
+    "testPlanStatus",
+    "scopeCheck",
+    "drift",
+    "build",
+    "staticAnalysis",
+    "unitTests",
+    "integrationTests",
+    "tiers",
+    "commandUsed",
+    "testsAdded",
+    "acVerified",
+    "acNotVerified",
+    "invariantsChecked",
+    "failureScenarios",
+    "confidence",
+    "confidenceReason",
+    "routingFacts",
+    "humanInputRequested"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,57 @@
+name: "Copilot Setup Steps"
+
+# Prepares the Copilot coding agent's environment (cloud mode). The job name must be `copilot-setup-steps`.
+# Runs on its own when this file changes, so it can be validated, and on demand from the Actions tab.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      # Set SHIPYARD_FEATURE as an Agents variable (repository Settings -> Copilot -> Coding agent) to the
+      # feature branch of the project in flight, for example feature/link-expiry. The notes branch is then
+      # <feature>-shipyard. Leave it unset before P0.
+      SHIPYARD_FEATURE: ${{ vars.SHIPYARD_FEATURE }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Node is needed only when the project itself uses it (and for this repo's own extension tests).
+      - uses: actions/setup-node@v4
+        if: ${{ hashFiles('package.json') != '' }}
+        with:
+          node-version: "22"
+
+      - name: Keep .ai/ off the work branches
+        run: |
+          mkdir -p .git/info
+          grep -qx '/.ai/' .git/info/exclude 2>/dev/null || echo '/.ai/' >> .git/info/exclude
+
+      - name: Restore .ai/ from the notes branch
+        if: ${{ env.SHIPYARD_FEATURE != '' }}
+        run: |
+          set -eu
+          NOTES="${SHIPYARD_FEATURE}-shipyard"
+          if git fetch --no-tags origin "+refs/heads/${NOTES}:refs/remotes/origin/${NOTES}" 2>/dev/null; then
+            git branch -f "${NOTES}" "refs/remotes/origin/${NOTES}"
+            python3 shipyard/scripts/shipyard_state.py restore --from "${NOTES}"
+            python3 shipyard/scripts/shipyard_state.py show
+          else
+            echo "No notes branch ${NOTES} on the remote yet (first task of the project)."
+          fi
+
+      - name: Shipyard environment report
+        run: python3 shipyard/scripts/check.py --env || true

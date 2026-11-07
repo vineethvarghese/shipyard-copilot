@@ -1,0 +1,14 @@
+stateDiagram-v2
+    [*] --> PROPOSED
+    PROPOSED --> APPROVED: you approve the plan at P8
+    APPROVED --> TEST_PLANNING: slice branch created
+    TEST_PLANNING --> IMPLEMENTING: test plan APPROVED
+    IMPLEMENTING --> VERIFYING: code and tests written
+    VERIFYING --> AGENT_REVIEW: suite and scope checks done
+    AGENT_REVIEW --> CHANGES_REQUESTED: open findings
+    CHANGES_REQUESTED --> IMPLEMENTING: fix round, at most 3
+    AGENT_REVIEW --> READY_FOR_HUMAN: no open findings
+    READY_FOR_HUMAN --> HUMAN_REVIEW: brief shown to you
+    HUMAN_REVIEW --> IMPLEMENTING: you request changes
+    HUMAN_REVIEW --> MERGED: you approve and the merge succeeds
+    MERGED --> [*]

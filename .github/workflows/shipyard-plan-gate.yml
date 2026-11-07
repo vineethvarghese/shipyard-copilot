@@ -1,0 +1,54 @@
+name: shipyard-plan-gate
+
+# No slice merges before the human approved the plan (P8). A pull request into a feature branch passes when
+# either `.ai/state.json` on the notes branch `<feature>-shipyard` records the P8 gate, or the pull request
+# carries the label `shipyard:plan-approved` (cloud mode, applied by a maintainer).
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+    branches:
+      - "feature/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  shipyard-plan-gate:
+    name: shipyard-plan-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check the P8 gate
+        env:
+          BASE: ${{ github.base_ref }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          set -eu
+          case ",${LABELS}," in
+            *,shipyard:plan-approved,*) echo "Label shipyard:plan-approved present."; exit 0 ;;
+          esac
+          NOTES="${BASE}-shipyard"
+          if ! git fetch --no-tags origin "+refs/heads/${NOTES}:refs/remotes/origin/${NOTES}"; then
+            echo "::error::No notes branch ${NOTES} and no shipyard:plan-approved label: the plan is not approved."
+            exit 1
+          fi
+          git show "refs/remotes/origin/${NOTES}:.ai/state.json" > /tmp/state.json
+          python3 - <<'PY'
+          import json, sys
+          state = json.load(open("/tmp/state.json"))
+          # shipyard_state.py gate P8 approve --by <login> appends {gate, by, at, slice} to the `gates` list.
+          gates = state.get("gates") or []
+          for gate in gates if isinstance(gates, list) else []:
+              if isinstance(gate, dict) and gate.get("gate") == "P8" and gate.get("by"):
+                  print("P8 gate approved by %s at %s." % (gate.get("by"), gate.get("at", "?")))
+                  sys.exit(0)
+          print("::error::state.json records no P8 approval and the pull request has no shipyard:plan-approved label.")
+          sys.exit(1)
+          PY

@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://shipyard.dev/contracts/planner-result.schema.json",
+  "title": "Planner result",
+  "description": "Return block of the planner (PLAN, REPLAN, RECONCILE).",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": [
+        "PLAN",
+        "REPLAN",
+        "RECONCILE"
+      ]
+    },
+    "slices": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "orderingRationale": {
+      "type": "string"
+    },
+    "largestSlice": {
+      "type": "string"
+    },
+    "consumerMigrationOrder": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "PLANNED",
+        "UNCHANGED",
+        "MINOR_UPDATE",
+        "REPLAN",
+        "ARCHITECTURE_DECISION",
+        "UNDERSPECIFIED"
+      ]
+    },
+    "exceptionRequests": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "humanInputRequested": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "question": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "string"
+        },
+        "recommendation": {
+          "type": "string"
+        },
+        "blocked": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "question",
+        "evidence",
+        "recommendation",
+        "blocked"
+      ],
+      "additionalProperties": false,
+      "description": "HUMAN_INPUT_REQUESTED block for the coordinator, or null"
+    }
+  },
+  "required": [
+    "mode",
+    "slices",
+    "orderingRationale",
+    "largestSlice",
+    "consumerMigrationOrder",
+    "risks",
+    "verdict",
+    "exceptionRequests",
+    "humanInputRequested"
+  ],
+  "additionalProperties": false
+}

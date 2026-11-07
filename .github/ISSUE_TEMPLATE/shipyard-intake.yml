@@ -1,0 +1,118 @@
+name: Shipyard intake (P0)
+description: Start a Shipyard project in cloud mode. The answers are the P0 delivery parameters C-1..C-10 and the brainstorm breadth.
+title: "[shipyard] "
+labels: ["shipyard", "shipyard:intake"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This form is the P0 gate for **cloud mode**. Every item has a default; leave it as it is to accept it
+        (it is then recorded as `ASSUMED` and flagged at plan approval). After submitting, assign the issue to
+        Copilot and write in a comment: `@copilot use the shipyard-coordinator agent and run intake and discover
+        for this issue`. The first task ends with the P4 questions as a comment on this issue.
+  - type: textarea
+    id: request
+    attributes:
+      label: The request
+      description: What should be built, changed or migrated, in plain words. Paste or link any design doc, issue or diagram you already have. This text is recorded verbatim.
+      placeholder: Replace our hand-rolled cache with a bounded LRU cache and move every caller to it.
+    validations:
+      required: true
+  - type: input
+    id: c1
+    attributes:
+      label: "C-1 Slice budget"
+      description: Target and maximum number of slices.
+      value: "up to 6"
+  - type: input
+    id: c2
+    attributes:
+      label: "C-2 New-project budget"
+      description: New projects, modules or packages allowed.
+      value: "0 unless justified"
+  - type: input
+    id: c3
+    attributes:
+      label: "C-3 Reuse posture"
+      description: Which shared libraries must be preferred, which may be modified.
+      value: "prefer existing; modify only with an ADR"
+  - type: input
+    id: c4
+    attributes:
+      label: "C-4 Blast radius"
+      description: Which deployed or shared components may be touched, and how invasively.
+      value: "only the components named in the request"
+  - type: input
+    id: c5
+    attributes:
+      label: "C-5 Tracking artifacts"
+      description: Work items or issues per slice, and the parent to hang them off.
+      value: "none"
+  - type: input
+    id: c6
+    attributes:
+      label: "C-6 Time and artifact budget"
+      description: How long to wait, how much to read.
+      value: "one screen per brief"
+  - type: input
+    id: c7
+    attributes:
+      label: "C-7 Convention posture"
+      description: May new tooling, test or build mechanisms be invented, or must everything follow repository convention?
+      value: "follow existing convention"
+  - type: input
+    id: feature
+    attributes:
+      label: "C-8 Feature branch"
+      description: Never main, master or the default branch. Slice branches are <feature>-slice-NN; notes go to <feature>-shipyard.
+      placeholder: feature/lru-cache
+    validations:
+      required: true
+  - type: input
+    id: base
+    attributes:
+      label: "C-8 Base branch"
+      description: The branch the feature branch is cut from and the final pull request targets.
+      value: "main"
+    validations:
+      required: true
+  - type: input
+    id: c9
+    attributes:
+      label: "C-9 Cost budget"
+      description: In your own terms; reported at every gate.
+      value: "moderate"
+  - type: dropdown
+    id: c10
+    attributes:
+      label: "C-10 Formal rigour"
+      description: none for most work; invariants when the request mentions concurrency, retries, money or multi-tenancy; model-checked only for a concurrency or partial-failure core.
+      options:
+        - none
+        - invariants
+        - properties
+        - model-checked
+      default: 0
+    validations:
+      required: true
+  - type: dropdown
+    id: breadth
+    attributes:
+      label: Brainstorm breadth
+      description: 0 if you brought a finished design; 1 when the goal is clear but the approach is open; 2 when the idea itself is open.
+      options:
+        - "0"
+        - "1"
+        - "2"
+      default: 1
+    validations:
+      required: true
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Before you start
+      options:
+        - label: "The rulesets from `.github/rulesets/` are imported and Copilot has no bypass on them."
+          required: true
+        - label: "`SHIPYARD_FEATURE` is set as an Agents variable to the feature branch above, so each task restores `.ai/` from the notes branch."
+          required: false

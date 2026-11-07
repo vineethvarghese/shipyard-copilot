@@ -1,0 +1,23 @@
+flowchart TD
+    req["Your request, word for word"] --> scan["P1 Scan: discovery reads the repo"]
+    scan --> seal["Elephant: discovery writes its sealed take first, at deep compute"]
+    seal --> lenses
+    subgraph lenses["Goldfish in parallel: each sees only the request, one lens and the repo"]
+        t["technical"]
+        v["value"]
+        e["experience, breadth 2"]
+        c["contrarian: much smaller or nothing"]
+        m["market, breadth 2, uses the web"]
+    end
+    lenses --> syn["Discovery SYNTHESIZE: cluster and rank against your limits and repo facts"]
+    syn --> dis["Flag where goldfish and elephant disagree"]
+    dis --> brief["concepts.md: clusters, top 3, disagreements, open questions"]
+    brief --> gaps["Gap tree G1 to Gn: kind, depends on, facts settled"]
+    gaps --> draft["P3 Draft: artifacts, glossary seed, round 1"]
+    draft --> pick{"P4 round 1: you pick a concept and answer the frontier"}
+    pick --> grill["Discovery GRILL: record, settle facts, challenge terms, write the glossary, recompute"]
+    grill --> more{"Next round: the new frontier"}
+    more -->|"questions left"| grill
+    more -->|"frontier empty, or you say enough"| check{"Shared-understanding checklist: you say yes"}
+    classDef human fill:#fde68a,stroke:#b45309,color:#000000
+    class pick,more,check human

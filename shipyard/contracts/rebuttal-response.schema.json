@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://shipyard.dev/contracts/rebuttal-response.schema.json",
+  "title": "Rebuttal response",
+  "description": "A reviewer's answer to one rebuttal.",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "properties": {
+    "findingId": {
+      "type": "string"
+    },
+    "response": {
+      "type": "string",
+      "enum": [
+        "ACCEPT_REBUTTAL",
+        "MAINTAIN_FINDING"
+      ]
+    },
+    "reason": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "findingId",
+    "response",
+    "reason"
+  ],
+  "additionalProperties": false
+}

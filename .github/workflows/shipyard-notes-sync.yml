@@ -1,0 +1,87 @@
+name: shipyard-notes-sync
+
+# Cloud mode only. A coding-agent task cannot push the notes branch, so it uploads `.ai/` as an artifact named
+# `shipyard-notes`. This workflow commits that artifact to `<feature>-shipyard` with git plumbing. It never
+# touches a work branch. Run it by hand (workflow_dispatch) with the run id that produced the artifact, or let
+# it follow a finished run of the workflow named below (the Copilot coding agent's workflow name is (unverified);
+# adjust `workflows:` to match your repository's Actions list).
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Actions run id that uploaded the shipyard-notes artifact"
+        required: true
+      feature:
+        description: "Feature branch (default: featureBranch from the artifact's state.json)"
+        required: false
+        default: ""
+  workflow_run:
+    workflows: ["Copilot"]
+    types: [completed]
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: shipyard-notes-sync
+  cancel-in-progress: false
+
+jobs:
+  shipyard-notes-sync:
+    name: shipyard-notes-sync
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download the shipyard-notes artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: shipyard-notes
+          path: notes-artifact
+          run-id: ${{ github.event.inputs.run_id || github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit the notes to the notes branch (plumbing only)
+        env:
+          FEATURE_INPUT: ${{ github.event.inputs.feature }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          set -eu
+          SRC="notes-artifact"
+          [ -d "$SRC/.ai" ] && SRC="$SRC/.ai"
+          test -f "$SRC/state.json" || { echo "::error::artifact has no state.json"; exit 1; }
+          FEATURE="${FEATURE_INPUT:-$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["featureBranch"])' "$SRC/state.json")}"
+          NOTES="$(python3 -c 'import json,sys;d=json.load(open(sys.argv[1]));print(d.get("notesBranch") or sys.argv[2]+"-shipyard")' "$SRC/state.json" "$FEATURE")"
+          case "$NOTES" in
+            main|master|"$FEATURE") echo "::error::refusing to write notes to $NOTES"; exit 1 ;;
+          esac
+          python3 shipyard/scripts/shipyard_validate.py state "$SRC/state.json"
+          git config user.name "shipyard-notes-sync"
+          git config user.email "shipyard-notes-sync@users.noreply.github.com"
+          PARENT=""
+          if git fetch --no-tags origin "+refs/heads/${NOTES}:refs/remotes/origin/${NOTES}" 2>/dev/null; then
+            PARENT="$(git rev-parse "refs/remotes/origin/${NOTES}")"
+          fi
+          # Build a tree holding only .ai/ from a temporary index and a staging folder; the checked-out work tree
+          # and the current branch are never touched.
+          TMP="$(mktemp -d)"; mkdir -p "$TMP/.ai"; cp -R "$SRC/." "$TMP/.ai/"
+          export GIT_INDEX_FILE="$(mktemp)"; rm -f "$GIT_INDEX_FILE"
+          git --work-tree="$TMP" add -f -- .ai
+          TREE="$(git write-tree)"
+          if [ -n "$PARENT" ] && [ "$(git rev-parse "${PARENT}^{tree}")" = "$TREE" ]; then
+            echo "Notes unchanged; nothing to commit."; exit 0
+          fi
+          MSG="cloud task: notes sync by ${ACTOR}"
+          if [ -n "$PARENT" ]; then
+            COMMIT="$(git commit-tree "$TREE" -p "$PARENT" -m "$MSG")"
+          else
+            COMMIT="$(git commit-tree "$TREE" -m "$MSG")"
+          fi
+          git push origin "${COMMIT}:refs/heads/${NOTES}"
+          echo "Committed ${COMMIT} to ${NOTES}."

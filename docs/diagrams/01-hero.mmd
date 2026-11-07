@@ -1,0 +1,13 @@
+flowchart LR
+    req["Your request"] --> p0["P0 Intake: you set limits and the branch"]
+    p0 --> disc["Discover: scan, brainstorm, draft"]
+    disc --> p4["P4 Grill: you pick a direction and answer rounds of questions"]
+    p4 --> plan["Plan: critique, refine, cut slices"]
+    plan --> p8["P8 Plan approval: you approve"]
+    p8 --> loop["Slice loop × N: test plan, build, verify, review"]
+    loop --> gate["Merge gate: you approve each slice"]
+    gate --> merge["Local merge into the feature branch"]
+    merge -->|"more slices"| loop
+    merge -->|"all slices merged"| pr["You push and raise the PR to main"]
+    classDef human fill:#fde68a,stroke:#b45309,color:#000000
+    class p0,p4,p8,gate,pr human

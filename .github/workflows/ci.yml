@@ -1,0 +1,38 @@
+name: ci
+
+# This repository's own checks: the hook and script tests, the extension tests, the repository checks and the
+# generated agent files. They run on every push and pull request.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Repository checks
+        run: |
+          python3 shipyard/scripts/check.py
+          python3 shipyard/scripts/check_links.py
+          python3 shipyard/scripts/gen_agents.py --check
+      - name: Hook tests
+        run: python3 -m unittest discover -s shipyard/tests/hooks
+      - name: Script tests
+        run: python3 -m unittest discover -s shipyard/tests/scripts
+      - name: Extension tests
+        run: node --test shipyard/tests/extensions/

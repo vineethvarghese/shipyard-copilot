@@ -1,0 +1,29 @@
+flowchart TD
+    P0["P0 Intake: limits, branch, breadth, formal rigour"]
+    subgraph DW["Workflow: discover"]
+        P1["P1 Scan"] --> P2["P2 Brainstorm and narrow"] --> P3["P3 Draft"]
+    end
+    P4["P4 Grill: concept pick, then rounds of questions until shared understanding"]
+    subgraph PW["Workflow: plan"]
+        P5["P5 Plan critique"] --> P6["P6 Refine, up to 2 cycles"] --> P7["P7 Delivery planning"]
+    end
+    P8["P8 Plan approval"]
+    subgraph SW["Workflow: slice"]
+        P9["P9 Slice: test plan, build, verify, review"]
+    end
+    P99["P9.9 Merge approval"]
+    P10["P10 Reconcile"]
+    done["Complete: you push and raise the PR"]
+    P0 --> P1
+    P3 --> P4
+    P4 --> P5
+    P6 -->|"new human questions"| P4
+    P7 --> P8
+    P8 --> P9
+    P9 --> P99
+    P99 --> P10
+    P10 -->|"next slice"| P9
+    P10 -->|"replan or architecture decision"| P8
+    P10 -->|"all slices merged"| done
+    classDef human fill:#fde68a,stroke:#b45309,stroke-width:3px,color:#000000
+    class P0,P4,P8,P99 human

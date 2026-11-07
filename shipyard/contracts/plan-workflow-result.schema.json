@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://shipyard.dev/contracts/plan-workflow-result.schema.json",
+  "title": "Plan workflow result",
+  "description": "What /shipyard:plan returns to the coordinator (P5–P7).",
+  "x-contract-version": "1.1.0",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "AWAITING_PLAN_APPROVAL",
+        "NEEDS_HUMAN",
+        "BLOCKED"
+      ]
+    },
+    "slices": {
+      "type": [
+        "integer",
+        "array"
+      ]
+    },
+    "readiness": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "humanInputRequests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "reason": {
+      "type": "string"
+    },
+    "cyclesUsed": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Refine cycles used so far, counting earlier launches. Re-launch with cycle set to this value."
+    }
+  },
+  "required": [
+    "status"
+  ],
+  "additionalProperties": true
+}

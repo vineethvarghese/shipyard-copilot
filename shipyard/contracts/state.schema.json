@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://shipyard.dev/contracts/state.schema.json",
+  "title": "Shipyard state (.ai/state.json)",
+  "description": "Machine-readable project state. Written only by the coordinator; read by hooks and workflows.",
+  "x-contract-version": "1.3.0",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string"
+    },
+    "project": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "INTAKE",
+        "DISCOVERY",
+        "BRAINSTORMING",
+        "PLANNING",
+        "DELIVERY_PLANNING",
+        "AWAITING_PLAN_APPROVAL",
+        "IMPLEMENTING",
+        "COMPLETE",
+        "BLOCKED"
+      ],
+      "description": "Project status. BRAINSTORMING and DELIVERY_PLANNING are accepted for compatibility; the coordinator records them only as phase-log labels, because status changes only between workflows."
+    },
+    "featureBranch": {
+      "type": "string"
+    },
+    "baseBranch": {
+      "type": "string"
+    },
+    "protectedBranches": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "activeSlice": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "sliceBranch": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "notesBranch": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Local branch that holds snapshots of .ai/ (default <featureBranch>-shipyard). Written only by `shipyard_state.py snapshot`; never checked out, never merged."
+    },
+    "brainstormBreadth": {
+      "type": "integer",
+      "enum": [
+        0,
+        1,
+        2
+      ]
+    },
+    "formalRigour": {
+      "type": "string",
+      "enum": [
+        "none",
+        "invariants",
+        "properties",
+        "model-checked"
+      ],
+      "description": "C-10 formal rigour chosen at P0. Optional; absent means none."
+    },
+    "activeRole": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "coordinator",
+        "discovery",
+        "goldfish",
+        "architect",
+        "planner",
+        "implementer",
+        "verifier",
+        "code-reviewer",
+        "security-reviewer",
+        "contract-reviewer",
+        "integration-reviewer",
+        "reliability-reviewer",
+        "simplicity-reviewer",
+        null
+      ],
+      "description": "The Shipyard role the coordinator is about to delegate to. Optional. Under GitHub Copilot the hooks read it when neither SHIPYARD_ROLE nor the hook payload names the role; the coordinator sets it with `shipyard_state.py set-active-role` before each delegation and clears it with `none` afterwards."
+    },
+    "gates": {
+      "type": "array",
+      "description": "Human gates recorded so far, in order. Optional. Appended by `shipyard_state.py gate <P0|P4|P8|MERGE> approve --by <login>`; `at` is the ISO 8601 committer date of HEAD when the repository has a commit, else the current UTC time.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "gate": {
+            "type": "string",
+            "enum": [
+              "P0",
+              "P4",
+              "P8",
+              "MERGE"
+            ]
+          },
+          "by": {
+            "type": "string",
+            "minLength": 1
+          },
+          "at": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slice": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "gate",
+          "by",
+          "at"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "project",
+    "status",
+    "featureBranch",
+    "baseBranch",
+    "protectedBranches",
+    "activeSlice",
+    "sliceBranch"
+  ],
+  "additionalProperties": false
+}

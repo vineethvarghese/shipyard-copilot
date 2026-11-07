@@ -1,0 +1,19 @@
+# Shipyard code owners. Replace @OWNER with the maintainers (a user or a team) who may approve changes to the
+# framework and to its notes. The rulesets require a code-owner review on the default branch.
+
+# Shipyard's working notes: never on a work branch, and never changed without a human.
+/.ai/                          @OWNER
+
+# The framework itself: agents, skills, hooks, workflows, prompts and the tool-independent core. Code review
+# and the cloud agent read these from the pull request's head branch, so a change here changes the reviewers.
+/.github/agents/               @OWNER
+/.github/skills/               @OWNER
+/.github/hooks/                @OWNER
+/.github/extensions/           @OWNER
+/.github/prompts/              @OWNER
+/.github/instructions/         @OWNER
+/.github/workflows/            @OWNER
+/.github/rulesets/             @OWNER
+/.github/copilot-instructions.md @OWNER
+/AGENTS.md                     @OWNER
+/shipyard/                     @OWNER

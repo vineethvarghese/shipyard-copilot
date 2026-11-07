@@ -1,0 +1,27 @@
+flowchart TD
+    start["Coordinator creates the slice branch"] --> tp["Verifier writes TEST_PLAN.md as DRAFT"]
+    tp --> gate{"Code-reviewer: approve the test plan?"}
+    gate -->|"REVISE, at most 2 revisions"| tp
+    gate -->|"still not approved"| esc1["ESCALATE to you"]
+    gate -->|"APPROVE"| build
+    subgraph build["In parallel, same working tree"]
+        impl["Implementer writes code"]
+        wt["Verifier writes tests"]
+    end
+    build --> ver["Verifier VERIFY: commit tests, run suite, scope check, routing facts"]
+    ver -->|"a SHARED tier is needed"| shared["NEEDS_SHARED_APPROVAL: you decide"]
+    ver --> route["Routed reviewers in parallel; code review always"]
+    route -->|"a reviewer fails twice"| blocked["BLOCKED_REVIEWER: fail closed"]
+    route --> dedupe["Dedupe findings"]
+    dedupe --> open{"Any open finding at MINOR or above?"}
+    open -->|"yes, under 3 rounds so far"| fix["Fix round: implementer and verifier fix or rebut; architect rules on disputes"]
+    fix --> ver
+    open -->|"yes, 3 rounds used"| esc2["ESCALATE with the open findings"]
+    open -->|"no"| brief["Coordinator writes EVIDENCE.md and REVIEW.HUMAN.md"]
+    brief --> human{"You approve?"}
+    human -->|"you request changes"| hfix["Change run: authors apply your requests, outside the round cap"]
+    hfix --> ver
+    human -->|"yes"| merge["git merge --no-ff into the feature branch"]
+    merge --> rec["P10 Reconcile"]
+    classDef human fill:#fde68a,stroke:#b45309,color:#000000
+    class esc1,shared,esc2,human human

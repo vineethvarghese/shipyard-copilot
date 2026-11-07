@@ -1,0 +1,37 @@
+name: shipyard-notes-guard
+
+# Required status check: Shipyard's `.ai/` folder never enters a work branch. Fails any pull request into main
+# or a feature branch whose diff touches `.ai/**`. The notes live on `<feature>-shipyard`, committed by
+# `shipyard_state.py snapshot` (CLI, IDE) or `shipyard-notes-sync.yml` (cloud).
+on:
+  pull_request:
+    branches:
+      - main
+      - "feature/**"
+
+permissions:
+  contents: read
+
+jobs:
+  shipyard-notes-guard:
+    name: shipyard-notes-guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fail if the pull request touches .ai/
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -eu
+          FILES="$(git diff --name-only "${BASE_SHA}...${HEAD_SHA}" | grep -E '^\.ai/' || true)"
+          if [ -n "$FILES" ]; then
+            echo "::error::This pull request changes Shipyard notes, which never enter a work branch:"
+            echo "$FILES"
+            exit 1
+          fi
+          echo "No .ai/ paths in the diff."

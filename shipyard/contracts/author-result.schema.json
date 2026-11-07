@@ -1,0 +1,196 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://shipyard.dev/contracts/author-result.schema.json",
+  "title": "Author result",
+  "description": "Return block of the implementer (IMPLEMENT, FIX) and the verifier when writing tests (WRITE_TESTS, FIX_TESTS).",
+  "x-contract-version": "1.1.0",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "implementer",
+        "verifier"
+      ]
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "IMPLEMENT",
+        "FIX",
+        "WRITE_TESTS",
+        "FIX_TESTS"
+      ]
+    },
+    "slice": {
+      "type": "string"
+    },
+    "round": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "acSatisfied": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "acNotSatisfied": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ac": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ac",
+          "why"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "filesChanged": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "commit": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Commit sha the author created, or null"
+    },
+    "fixed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rebuttals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "findingId": {
+            "type": "string"
+          },
+          "citation": {
+            "type": "string"
+          },
+          "argument": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "findingId",
+          "citation",
+          "argument"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "architectureConcerns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "outOfScopeNoticed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stubsRemaining": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "build": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL",
+        "NOT_RUN"
+      ]
+    },
+    "humanInputRequested": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "question": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "string"
+        },
+        "recommendation": {
+          "type": "string"
+        },
+        "blocked": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "question",
+        "evidence",
+        "recommendation",
+        "blocked"
+      ],
+      "additionalProperties": false,
+      "description": "HUMAN_INPUT_REQUESTED block for the coordinator, or null"
+    },
+    "testDisputes": {
+      "type": "array",
+      "description": "Optional. Tests the author believes are wrong (they contradict SLICE.md or the approved TEST_PLAN.md). The architect rules on each one; the author never edits the other author's files.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "test": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "citation": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "test",
+          "reason",
+          "citation"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "role",
+    "mode",
+    "slice",
+    "round",
+    "acSatisfied",
+    "acNotSatisfied",
+    "filesChanged",
+    "commit",
+    "fixed",
+    "rebuttals",
+    "architectureConcerns",
+    "outOfScopeNoticed",
+    "stubsRemaining",
+    "build",
+    "humanInputRequested"
+  ],
+  "additionalProperties": false
+}

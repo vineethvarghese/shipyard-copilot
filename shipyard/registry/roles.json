@@ -1,0 +1,373 @@
+{
+  "schemaVersion": "1.0.0",
+  "description": "Role registry: the only place that maps workflow roles to agents, compute per mode, routing triggers and contracts. Workflows read it via args.registry and never hard-code agent names.",
+  "plugin": "shipyard",
+  "computeClasses": {
+    "COORDINATOR": {
+      "model": "opus",
+      "effort": "max",
+      "note": "Set at session launch: copilot --agent=shipyard-coordinator with the COORDINATOR model (and effortLevel high in .github/copilot/settings.json)"
+    },
+    "DEEP": {
+      "model": "opus",
+      "effort": "high"
+    },
+    "STANDARD": {
+      "model": "sonnet",
+      "effort": "medium"
+    }
+  },
+  "roles": {
+    "coordinator": {
+      "agent": "shipyard-coordinator",
+      "modes": {
+        "SESSION": "COORDINATOR"
+      },
+      "contract": null,
+      "skills": [
+        "shipyard-framework"
+      ]
+    },
+    "discovery": {
+      "agent": "shipyard-discovery",
+      "modes": {
+        "SCAN": "STANDARD",
+        "ELEPHANT": "DEEP",
+        "DRAFT": "STANDARD",
+        "SYNTHESIZE": "DEEP",
+        "QUESTIONS": "DEEP",
+        "GRILL": "DEEP"
+      },
+      "contract": "discovery-result@1",
+      "skills": [
+        "shipyard-framework",
+        "brainstorm-elephant-goldfish"
+      ]
+    },
+    "goldfish": {
+      "agent": "shipyard-goldfish",
+      "modes": {
+        "BRAINSTORM": "DEEP",
+        "READINESS": "DEEP"
+      },
+      "contract": "goldfish-result@1",
+      "skills": [],
+      "lenses": {
+        "1": [
+          "technical",
+          "value",
+          "contrarian"
+        ],
+        "2": [
+          "technical",
+          "value",
+          "experience",
+          "contrarian",
+          "market"
+        ]
+      }
+    },
+    "architect": {
+      "agent": "shipyard-architect",
+      "modes": {
+        "DRAFT": "DEEP",
+        "CRITIQUE": "DEEP",
+        "CONFORMANCE": "DEEP",
+        "ADJUDICATE": "DEEP",
+        "REVALIDATE": "DEEP"
+      },
+      "contract": "architect-result@1",
+      "skills": [
+        "shipyard-framework",
+        "domain-design",
+        "code-clarity"
+      ]
+    },
+    "planner": {
+      "agent": "shipyard-planner",
+      "modes": {
+        "PLAN": "DEEP",
+        "REPLAN": "DEEP",
+        "RECONCILE": "DEEP"
+      },
+      "contract": "planner-result@1",
+      "skills": [
+        "shipyard-framework"
+      ]
+    },
+    "implementer": {
+      "agent": "shipyard-implementer",
+      "modes": {
+        "IMPLEMENT": "STANDARD",
+        "FIX": "STANDARD"
+      },
+      "contract": "author-result@1",
+      "skills": [
+        "shipyard-framework",
+        "lang-packs"
+      ]
+    },
+    "verifier": {
+      "agent": "shipyard-verifier",
+      "modes": {
+        "TEST_PLAN": "DEEP",
+        "WRITE_TESTS": "STANDARD",
+        "VERIFY": "STANDARD",
+        "FIX_TESTS": "STANDARD"
+      },
+      "contracts": {
+        "TEST_PLAN": "test-plan-result@1",
+        "WRITE_TESTS": "author-result@1",
+        "FIX_TESTS": "author-result@1",
+        "VERIFY": "verify-result@2"
+      },
+      "skills": [
+        "shipyard-framework",
+        "test-design",
+        "lang-packs"
+      ]
+    },
+    "code-review": {
+      "agent": "shipyard-code-reviewer",
+      "modes": {
+        "TEST_PLAN": "DEEP",
+        "SLICE": "DEEP",
+        "RECHECK": "DEEP",
+        "REBUTTAL": "DEEP"
+      },
+      "contract": "reviewer-result@1",
+      "skills": [
+        "shipyard-framework",
+        "code-clarity",
+        "performance",
+        "domain-design",
+        "test-quality",
+        "lang-packs"
+      ],
+      "contracts": {
+        "REBUTTAL": "rebuttal-response@1"
+      }
+    },
+    "security-review": {
+      "agent": "shipyard-security-reviewer",
+      "modes": {
+        "PLAN": "DEEP",
+        "SLICE": "DEEP",
+        "RECHECK": "DEEP",
+        "REBUTTAL": "DEEP"
+      },
+      "contract": "reviewer-result@1",
+      "skills": [
+        "shipyard-framework",
+        "security-audit",
+        "lang-packs"
+      ],
+      "contracts": {
+        "REBUTTAL": "rebuttal-response@1"
+      }
+    },
+    "contract-review": {
+      "agent": "shipyard-contract-reviewer",
+      "modes": {
+        "PLAN": "DEEP",
+        "SLICE": "DEEP",
+        "RECHECK": "DEEP",
+        "REBUTTAL": "DEEP"
+      },
+      "contract": "reviewer-result@1",
+      "skills": [
+        "shipyard-framework",
+        "contract-review"
+      ],
+      "contracts": {
+        "REBUTTAL": "rebuttal-response@1"
+      }
+    },
+    "integration-review": {
+      "agent": "shipyard-integration-reviewer",
+      "modes": {
+        "PLAN": "DEEP",
+        "SLICE": "DEEP",
+        "RECHECK": "DEEP",
+        "REBUTTAL": "DEEP"
+      },
+      "contract": "reviewer-result@1",
+      "skills": [
+        "shipyard-framework",
+        "integration-review"
+      ],
+      "contracts": {
+        "REBUTTAL": "rebuttal-response@1"
+      }
+    },
+    "reliability-review": {
+      "agent": "shipyard-reliability-reviewer",
+      "modes": {
+        "PLAN": "DEEP",
+        "SLICE": "DEEP",
+        "RECHECK": "DEEP",
+        "REBUTTAL": "DEEP"
+      },
+      "contract": "reviewer-result@1",
+      "skills": [
+        "shipyard-framework",
+        "reliability-review",
+        "performance"
+      ],
+      "contracts": {
+        "REBUTTAL": "rebuttal-response@1"
+      }
+    },
+    "simplicity-review": {
+      "agent": "shipyard-simplicity-reviewer",
+      "modes": {
+        "PLAN": "DEEP",
+        "SLICE": "DEEP",
+        "RECHECK": "DEEP",
+        "REBUTTAL": "DEEP"
+      },
+      "contract": "reviewer-result@1",
+      "skills": [
+        "shipyard-framework",
+        "simplicity-review"
+      ],
+      "contracts": {
+        "REBUTTAL": "rebuttal-response@1"
+      }
+    }
+  },
+  "routing": {
+    "slice": [
+      {
+        "role": "code-review",
+        "when": [
+          "always"
+        ],
+        "note": "Always: production code, tests or both. A test-only slice still gets its tests reviewed."
+      },
+      {
+        "role": "simplicity-review",
+        "unless": [
+          "mechanicalOnly"
+        ],
+        "when": [
+          "productionCode"
+        ],
+        "note": "Skipped only for mechanical slices; say so in EVIDENCE.md"
+      },
+      {
+        "role": "security-review",
+        "when": [
+          "security"
+        ]
+      },
+      {
+        "role": "contract-review",
+        "when": [
+          "publicContract",
+          "config"
+        ]
+      },
+      {
+        "role": "integration-review",
+        "when": [
+          "consumerVisible",
+          "publicContract",
+          "config"
+        ]
+      },
+      {
+        "role": "reliability-review",
+        "when": [
+          "concurrency"
+        ]
+      }
+    ],
+    "plan": [
+      {
+        "role": "architect",
+        "when": [
+          "always"
+        ]
+      },
+      {
+        "role": "simplicity-review",
+        "when": [
+          "always"
+        ]
+      },
+      {
+        "role": "contract-review",
+        "when": [
+          "publicContract",
+          "config"
+        ]
+      },
+      {
+        "role": "integration-review",
+        "when": [
+          "consumerVisible"
+        ]
+      },
+      {
+        "role": "reliability-review",
+        "when": [
+          "concurrency",
+          "modelChecked"
+        ],
+        "note": "Also routed when C-10 formal rigour is model-checked: the reviewer runs the models under .ai/formal/ and interprets any trace."
+      },
+      {
+        "role": "security-review",
+        "when": [
+          "security"
+        ]
+      }
+    ],
+    "uncertainFlag": "route",
+    "triggerDefinitions": {
+      "productionCode": "Any change to non-test, non-generated source code",
+      "mechanicalOnly": "Only renames, version bumps, generated code, formatting or config value changes",
+      "publicContract": "Public API, RPC contract, DTO, serialization/wire format, public interface, externally visible error or cancellation behaviour",
+      "config": "Configuration schema or defaults that consumers set or rely on",
+      "consumerVisible": "Behaviour a consumer, operator or other team can observe; onboarding; rollout; migration; deployment assumptions",
+      "concurrency": "Async, concurrency, synchronization, retry, timeout, cancellation, networking, streaming, resource lifetime, shared mutable state, deployment lifecycle",
+      "security": "Authentication, authorization, tokens or secrets, tenant/user isolation, parsing untrusted input, cryptography, a new external network surface",
+      "modelChecked": "C-10 formal rigour is model-checked: at least one invariant has a model under .ai/formal/ that must be run with scripts/formal_check.py and its counterexample trace rendered in plain English (plan routing only)"
+    }
+  },
+  "limits": {
+    "testPlanRevisions": 2,
+    "fixRounds": 3,
+    "findingsCapPerReviewer": 15,
+    "reviewerRetries": 1,
+    "planRefineCycles": 2,
+    "grillRounds": 3,
+    "grillQuestionsPerRound": 7
+  },
+  "fixScope": [
+    "BLOCKING",
+    "MAJOR",
+    "MINOR"
+  ],
+  "severityMap": {
+    "security": {
+      "CRITICAL": "BLOCKING",
+      "HIGH": "BLOCKING",
+      "MEDIUM": "MAJOR",
+      "LOW": "MINOR",
+      "INFORMATIONAL": "NOTE",
+      "MISSING": "BLOCKING"
+    }
+  },
+  "workflowContractMajor": {
+    "discover": 1,
+    "plan": 1,
+    "slice": 1
+  },
+  "workflowContracts": {
+    "discover": "discover-workflow-result@1",
+    "plan": "plan-workflow-result@1",
+    "slice": "slice-workflow-result@1"
+  }
+}

@@ -1,0 +1,17 @@
+gitGraph
+    commit id: "main tip"
+    branch feature-demo
+    checkout feature-demo
+    branch feature-demo-slice-01
+    checkout feature-demo-slice-01
+    commit id: "slice 01 round 0: code"
+    commit id: "slice 01 round 0: tests"
+    checkout feature-demo
+    merge feature-demo-slice-01 id: "Merge slice 01"
+    branch feature-demo-slice-02
+    checkout feature-demo-slice-02
+    commit id: "slice 02 round 0: code"
+    commit id: "slice 02 round 0: tests"
+    commit id: "slice 02 round 1: code"
+    checkout feature-demo
+    merge feature-demo-slice-02 id: "Merge slice 02"

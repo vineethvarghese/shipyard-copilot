@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://shipyard.dev/contracts/test-plan-result.schema.json",
+  "title": "Test plan result",
+  "description": "Return block of the verifier in TEST_PLAN mode.",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "properties": {
+    "slice": {
+      "type": "string"
+    },
+    "testPlanFile": {
+      "type": "string"
+    },
+    "acCoverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ac": {
+            "type": "string"
+          },
+          "tests": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "unit",
+              "integration",
+              "e2e",
+              "benchmark",
+              "tier"
+            ]
+          }
+        },
+        "required": [
+          "ac",
+          "tests",
+          "level"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "acNotVerifiable": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ac": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string"
+          },
+          "checkedInstead": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ac",
+          "why",
+          "checkedInstead"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "failureCases": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "benchmarks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tiers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "environment": {
+            "type": "string",
+            "enum": [
+              "LOCAL",
+              "SHARED"
+            ]
+          },
+          "acs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "whyNeeded": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "environment",
+          "acs",
+          "whyNeeded"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "humanInputRequested": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "question": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "string"
+        },
+        "recommendation": {
+          "type": "string"
+        },
+        "blocked": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "question",
+        "evidence",
+        "recommendation",
+        "blocked"
+      ],
+      "additionalProperties": false,
+      "description": "HUMAN_INPUT_REQUESTED block for the coordinator, or null"
+    }
+  },
+  "required": [
+    "slice",
+    "testPlanFile",
+    "acCoverage",
+    "acNotVerifiable",
+    "failureCases",
+    "benchmarks",
+    "tiers",
+    "humanInputRequested"
+  ],
+  "additionalProperties": false
+}

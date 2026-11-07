@@ -1,0 +1,35 @@
+sequenceDiagram
+    participant Y as You
+    participant C as Coordinator
+    participant W as Slice workflow
+    participant V as Verifier
+    participant CR as CodeReviewer
+    participant I as Implementer
+    participant R as Reviewers
+    C->>C: Create slice branch and update state.json
+    C->>W: Launch the slice workflow for one slice
+    W->>V: TEST_PLAN mode
+    V-->>W: TEST_PLAN.md written as DRAFT
+    W->>CR: TEST_PLAN review
+    CR-->>W: APPROVE and flip the status line
+    par Code
+        W->>I: IMPLEMENT
+        I-->>W: Code committed
+    and Tests
+        W->>V: WRITE_TESTS
+        V-->>W: Tests written
+    end
+    W->>V: VERIFY
+    V-->>W: Suite result and routing facts
+    W->>R: SLICE review of the raw diff
+    R-->>W: Findings
+    loop Fix rounds while findings are open, at most 3
+        W->>I: FIX code findings
+        W->>V: FIX_TESTS test findings
+        W->>V: VERIFY again
+        W->>R: RECHECK
+    end
+    W-->>C: READY_FOR_HUMAN with evidence
+    C->>Y: Show REVIEW.HUMAN.md in chat
+    Y->>C: Approve the merge
+    C->>C: Merge into the feature branch, no fast-forward
