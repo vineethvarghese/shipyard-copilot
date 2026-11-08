@@ -40,8 +40,10 @@ Probed on CLI 1.0.107 with `copilot --plugin-dir`:
    repository and runs `init`, `update` or `status`.
 3. **Do not merge the two.** The docs say to pick one per project: Copilot runs project hooks and plugin hooks
    both, so a project with both would see every deny twice.
-4. **No marketplace yet.** A marketplace needs a second repository with `marketplace.json`; a direct install from
-   the repository covers the need today.
+4. **No marketplace yet.** A marketplace needs a repository with `.github/plugin/marketplace.json` listing this one
+   as a plugin source; a direct install from the repository covers the need today. CLI 1.0.107 warns that direct
+   installs are deprecated in favour of `plugin@marketplace`, so the marketplace file is the next step, not an
+   option.
 
 ## Consequences
 

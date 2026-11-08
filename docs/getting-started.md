@@ -43,6 +43,10 @@ the plugin folder with your project as `COPILOT_PROJECT_DIR`; the workflows regi
 trusted folder (verified on CLI 1.0.107). Your project only ever gets a `.ai/` folder. Disable without removing:
 `copilot plugin disable shipyard`. Remove: `copilot plugin uninstall shipyard`.
 
+CLI 1.0.107 installs it with a warning that direct installs (`owner/repo`, URLs, local paths) are deprecated in
+favour of `plugin@marketplace`. The install works today; a marketplace listing is the planned follow-up
+([ADR-0003](decisions/ADR-0003-plugin-and-project-install.md)).
+
 ### Project install (every client)
 
 ```bash
