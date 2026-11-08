@@ -19,7 +19,7 @@ every claim carries its evidence kind: `tested`, `property-tested`, `model-check
 |---|---|---|---|---|
 | `none` | `INVARIANTS.md` four-line blocks | architect | reviewers by reading | none |
 | `invariants` | The extended block for every invariant (plain English, why it matters, satisfied by, violated by, check, status, tags); a state-by-event table and a Mermaid `stateDiagram-v2` for anything stateful | architect `DRAFT` | reliability reviewer `PLAN` hunts missing cells and reachable `Violated by:` sequences; the verifier copies them into failure cases | none |
-| `properties` | A property-based test (the repository's library, per `lang-packs`) or a runtime assertion plus a test that it fires, for every invariant whose `Check:` says `property` | verifier `TEST_PLAN` plans it in `## Invariants exercised`; `WRITE_TESTS` writes it; the implementer adds assertions in the code touch set | code-reviewer `TEST_PLAN` asks "would it fail against a no-op stub?"; `VERIFY` reports `formal.checked` | one dev dependency the repository already has or C-7 allows |
+| `properties` | A property-based test (the repository's library, per `lang-packs`) or a runtime assertion plus a test that it fires, for every invariant whose `Check:` says `property` | verifier `TEST_PLAN` plans it in `## Invariants exercised`; `WRITE_TESTS` writes it; the implementer adds assertions in the code touch set | code-reviewer `TEST_PLAN` asks "which violating implementation does it fail against?"; `VERIFY` reports `formal.checked` | one dev dependency the repository already has or C-7 allows |
 | `model-checked` | A small model per concurrency, lifecycle or partial-failure invariant at `.ai/formal/INV-nnn.qnt`, with a sibling `INV-nnn.fault.qnt` holding a planted fault | architect `DRAFT` | reliability reviewer `PLAN` runs both with `scripts/formal_check.py` and renders any trace; the verifier may add a trace-replay or property test so the model stays linked to the code | `quint` (and `java` for `--verify`), user-installed, discovered at P1, never installed by Shipyard |
 
 Only invariants tagged `concurrency`, `lifecycle` or `partial-failure` get a model. A model of a create-read-update
@@ -58,17 +58,21 @@ python3 shipyard/scripts/formal_check.py tools
 python3 shipyard/scripts/formal_check.py run .ai/formal/INV-003.qnt --invariant executeAtMostOnce \
     --max-steps 20 --timeout 300 --verify --backend tlc --out .ai/formal/INV-003.trace.itf.json
 python3 shipyard/scripts/formal_check.py run .ai/formal/INV-003.fault.qnt --invariant executeAtMostOnce \
-    --expect VIOLATED
+    --verify --backend tlc --expect VIOLATED
 ```
 
-The script prints one JSON object: `status` (`PASS`, `VIOLATED`, `NOT_RUN`, `ERROR`, `UNEXPECTED`), the checker and
-bound, `steps`, and `markdown` (the trace as a step table with changed values in bold). The reviewer writes two or
-three plain sentences that tell the trace's story in glossary terms, then the table, into its findings file; the
-human reads the sentences.
+The script prints one JSON object and writes it to `.ai/formal/INV-003.result.json`: `status` (`PASS`, `VIOLATED`,
+`NOT_RUN`, `ERROR`, `UNEXPECTED`), `checker`, `evidence` (`simulated (random, N steps)` without `--verify`,
+`model-checked (bounded, N steps)` with it), `modelSha256`, `steps`, and `markdown` (the trace as a step table with
+changed values in bold). The verifier reads the result file at VERIFY and compares the sha with the model as it is
+then. The reviewer writes two or three plain sentences that tell the trace's story in glossary terms, then the
+table, into its findings file; the human reads the sentences.
 
 | Result | Meaning | Finding |
 |---|---|---|
-| `PASS` | No violation within the bound | None; `Status:` in `INVARIANTS.md` becomes `model-checked (bounded, N steps)` |
+| `PASS` with `verified: true` | No violation within the bound | None; `Status:` in `INVARIANTS.md` becomes `model-checked (bounded, N steps)` |
+| `PASS` with `evidence: simulated` | Random simulation only; the checker did not run | Reported as `NOT_RUN (simulation only)` with why `--verify` could not run |
+| `ERROR` | The tooling failed and showed nothing | Recorded as `NOT_RUN (checker error)`; never read as a violation, even on the fault model |
 | `VIOLATED` on the real model | The invariant as stated cannot hold in the planned design | Six-part reliability finding, owner `architect`, trace as evidence; usually a restated invariant plus the smallest mechanism |
 | `UNEXPECTED` on the fault model | The planted fault did not fail: the model is too weak to prove anything | Finding "model too weak", owner `architect` |
 | `NOT_RUN` | Tooling missing or timed out | Not a finding. Recorded as `NOT_RUN (<reason>)`; the coordinator lists it under risks at P8 and at the merge gate |

@@ -181,7 +181,7 @@ export async function run(ctx) {
 
   const readinessCall = (s) => call('goldfish', 'READINESS', {
     read: [`.ai/slices/${s}/SLICE.md`], budgetTurns: BUDGET.READINESS,
-    text: `Lens: readiness\n\nRead .ai/slices/${s}/SLICE.md cold. Could a first-time implementer ship this without asking anything? Check that "## Seams under test" names at least one seam that exists in the repository. Answer READY or NOT_READY; for NOT_READY list the exact questions they would have to ask.`,
+    text: `Lens: readiness\n\nRead .ai/slices/${s}/SLICE.md cold. Could a first-time implementer ship this without asking anything? Check that "## Seams under test" names at least one seam that either exists in the repository or is specified precisely as planned (its interface, and the slice that introduces it, which must be this slice or a prerequisite). Answer READY or NOT_READY; for NOT_READY list the exact questions they would have to ask.`,
   }, `goldfish READINESS ${s}`);
 
   const sequencingJobs = [

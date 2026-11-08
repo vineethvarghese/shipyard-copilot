@@ -20,8 +20,9 @@ applyTo: "**/test/**,**/tests/**,**/__tests__/**,**/*.test.*,**/*.spec.*,**/*_te
   it stands in for.
 - **Keep the canonical command canonical.** Run the repository's recorded test command exactly as recorded, never
   a filtered or quieter variant, when producing evidence. Filtered runs are debugging, not evidence.
-- **Invariants need a test that can fail.** Each row under `## Invariants exercised` names how the test would fail
-  against a no-op stub. At C-10 `properties` and above, property tests; at `model-checked`, a trace replay.
+- **Invariants need a test that can fail.** Each row under `## Invariants exercised` names a faulty implementation that
+  violates the invariant and would fail the test (a safety property may hold for a do-nothing stub; the AC tests
+  reject that). At C-10 `properties` and above, property tests; at `model-checked`, a trace replay.
 - **Necessity goes both ways.** The code-reviewer may file "tests to remove" and "tests to reshape" as well as
   "tests to add". A redundant or tautological test is a finding owned by the verifier.
 - The method lives in the skills `test-design` (writing) and `test-quality` (reviewing) under `.github/skills/`,

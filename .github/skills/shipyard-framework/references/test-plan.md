@@ -42,11 +42,14 @@ implementation, which does not exist yet.
 4. **Failure, edge and boundary cases**, each tied to an AC: empty, one, many, limits and limit+1, invalid input,
    time-outs, cancellation, partial failure, concurrent access where relevant.
 6. **Benchmarks** for every performance AC: what is measured, the baseline, the threshold, the command.
-7. **Invariants exercised**: a table `INV | Tier | Test (file :: name) | Would fail against a no-op stub?` for every
-   invariant the slice names under `## Architecture constraints`. At C-10 `properties` and above, an invariant whose
-   `Check:` says `property` gets a property-based test (the repository's library, per `lang-packs`) or a test that
-   proves its runtime assertion fires. The last column must say how the test would fail against an implementation
-   that does nothing: a property that passes against a no-op stub is a tautology.
+7. **Invariants exercised**: a table `INV | Tier | Test (file :: name) | Violating implementation it fails against`
+   for every invariant the slice names under `## Architecture constraints`. At C-10 `properties` and above, an
+   invariant whose `Check:` says `property` gets a property-based test (the repository's library, per
+   `lang-packs`) or a test that proves its runtime assertion fires. The last column names one concrete faulty
+   implementation that violates the invariant and would make the test fail (a store that ignores the tenant, a
+   worker that re-applies after a crash). A safety property is allowed to hold for an implementation that does
+   nothing; the acceptance-criteria tests reject that. A property for which no violating implementation can be
+   named is a tautology.
 8. **Test doubles**: each fake and the system boundary it stands in for (an external API, the clock, randomness,
    the file system where unavoidable). Never a fake of the project's own module or an internal collaborator.
 9. **ACs not verifiable here**, each with why and what is checked instead.
@@ -70,7 +73,8 @@ The code-reviewer reads only the raw `SLICE.md` and `TEST_PLAN.md` (no diff — 
 | **Touch set and tiers** | A planned test file outside the test touch set; a `SHARED` tier presented as routine. |
 | **ACs not verifiable here** | Silently missing ACs instead of a named entry with what is checked instead. |
 | **Every test at a declared seam** | A planned test that reaches past `## Seams under test` into a private module or an internal collaborator; a seam the slice never declared. |
-| **Doubles only at system boundaries** | A fake of the project's own module, a mocked internal collaborator, or an invariant property that would still pass against a no-op stub. |
+| **Doubles only at system boundaries** | A fake of the project's own module, a mocked internal collaborator. |
+| **Every invariant test can fail** | An invariant row whose last column is empty or names no concrete violating implementation; a property that no faulty implementation could fail (a tautology). |
 
 Each gap is a finding in the standard schema (`finding-schema.md`) with `Owner: verifier`, written to
 `.ai/slices/<id>/findings/code-reviewer.test-plan.md`. Verdict `REVISE` if any `BLOCKING`, `MAJOR` or `MINOR` finding

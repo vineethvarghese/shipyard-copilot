@@ -3,11 +3,14 @@
 
     formal_check.py tools
         Report which formal tools are on PATH (quint, java). Never installs anything.
-    formal_check.py run MODEL.qnt --invariant NAME [--out TRACE.itf.json] [--max-steps N] [--timeout SECONDS]
-                        [--verify] [--backend tlc|apalache] [--expect PASS|VIOLATED]
+    formal_check.py run MODEL.qnt --invariant NAME [--out TRACE.itf.json] [--summary RESULT.json] [--max-steps N]
+                        [--timeout SECONDS] [--verify] [--backend tlc|apalache] [--expect PASS|VIOLATED]
         Run `quint run` (random simulation) and, with --verify, `quint verify` (bounded model checking) on the
-        model. Prints one JSON object: status PASS | VIOLATED | NOT_RUN | ERROR | UNEXPECTED, the tool used, the
-        bound, the trace rendered as a Markdown step table, and the reason when it did not run.
+        model. Prints one JSON object and writes the same object to RESULT.json (default <model>.result.json):
+        status PASS | VIOLATED | NOT_RUN | ERROR | UNEXPECTED, the checker that produced it, the evidence kind
+        (`simulated (random, N steps)` without --verify, `model-checked (bounded, N steps)` with it), the bound,
+        the model's sha256, the trace rendered as a Markdown step table, and the reason when it did not run.
+        A PASS from simulation alone is never model-checked evidence; only `quint verify` earns that label.
     formal_check.py render TRACE.itf.json
         Render an existing ITF trace (the JSON format Quint and the TLA+ tools write) as a Markdown step table.
 
@@ -20,13 +23,12 @@ Exit codes: 0 the run completed and matched --expect (PASS by default); 1 VIOLAT
 """
 
 import argparse
+import hashlib
 import json
 import os
 import shutil
 import subprocess
 import sys
-
-TIER_NOTE = "model-checked (bounded)"
 
 
 # ---------------------------------------------------------------- ITF rendering
@@ -137,9 +139,35 @@ def cmd_tools(args):
 # ---------------------------------------------------------------- run
 
 def result(status, **kw):
-    r = {"status": status, "tier": TIER_NOTE}
+    r = {"status": status}
     r.update(kw)
     return r
+
+
+def sha256_of(path):
+    h = hashlib.sha256()
+    try:
+        with open(path, "rb") as fh:
+            h.update(fh.read())
+    except OSError:
+        return None
+    return h.hexdigest()
+
+
+def write_summary(path, r):
+    try:
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(r, fh, indent=2)
+            fh.write("\n")
+        r["summary"] = path
+    except OSError as exc:
+        r["summaryError"] = "could not write %s: %s" % (path, exc)
+
+
+def emit(args, r, code):
+    write_summary(args.summary or (os.path.splitext(args.model)[0] + ".result.json"), r)
+    print(json.dumps(r, indent=2))
+    return code
 
 
 def run_quint(argv, timeout):
@@ -152,18 +180,16 @@ def run_quint(argv, timeout):
     return proc, None
 
 
-def classify(proc, out_path):
-    """Quint prints [ok] / [violation] and exits non-zero on a violation or an error."""
+def classify(proc):
+    """Quint prints [ok] / [violation] and exits non-zero on a violation or an error. Only explicit violation
+    text counts as a violation; a trace file on disk is never evidence by itself (a stale or partial file could
+    otherwise turn a tooling error into a 'successful' planted-fault check)."""
     blob = (proc.stdout or "") + "\n" + (proc.stderr or "")
     low = blob.lower()
-    if "[violation]" in low or "violation" in low and "invariant" in low:
+    if "[violation]" in low or ("violation" in low and "invariant" in low):
         return "VIOLATED", blob
-    if proc.returncode == 0 and ("[ok]" in low or "no violation" in low or "ok" in low):
-        return "PASS", blob
     if proc.returncode == 0:
         return "PASS", blob
-    if os.path.isfile(out_path or ""):
-        return "VIOLATED", blob
     return "ERROR", blob
 
 
@@ -174,69 +200,81 @@ def tail(text, n=20):
 
 def cmd_run(args):
     expect = args.expect or "PASS"
+    base = dict(model=args.model, invariant=args.invariant, maxSteps=args.max_steps, expected=expect,
+                modelSha256=sha256_of(args.model))
     if not os.path.isfile(args.model):
-        print(json.dumps(result("ERROR", model=args.model, invariant=args.invariant, reason="model file not found")))
-        return 1
+        return emit(args, result("ERROR", reason="model file not found", **base), 1)
     tools = tool_report()
+    base["tools"] = tools
     if not tools["quint"]["path"]:
-        print(json.dumps(result("NOT_RUN", model=args.model, invariant=args.invariant, tools=tools,
-                                reason="quint is not on PATH; install it yourself (npm i -g @informalsystems/quint) "
-                                       "or lower C-10 to properties. Shipyard never installs tooling.")))
-        return 3
-    out = args.out or (os.path.splitext(args.model)[0] + ".trace.itf.json")
-    if os.path.isfile(out):
-        os.unlink(out)
-    base = ["quint", "run", args.model, "--invariant", args.invariant, "--max-steps", str(args.max_steps),
-            "--out-itf", out]
-    proc, err = run_quint(base, args.timeout)
+        return emit(args, result("NOT_RUN", reason="quint is not on PATH; install it yourself (npm i -g "
+                                 "@informalsystems/quint) or lower C-10 to properties. Shipyard never installs "
+                                 "tooling.", **base), 3)
+    stem = os.path.splitext(args.model)[0]
+    out = args.out or (stem + ".trace.itf.json")
+    sim_out = stem + ".sim.itf.json"
+    # Each phase writes its own trace file, so a simulation trace can never be mistaken for a checker result.
+    for path in (out, sim_out):
+        if os.path.isfile(path):
+            os.unlink(path)
+
+    sim_cmd = ["quint", "run", args.model, "--invariant", args.invariant, "--max-steps", str(args.max_steps),
+               "--out-itf", sim_out]
+    proc, err = run_quint(sim_cmd, args.timeout)
     if err:
-        print(json.dumps(result("NOT_RUN", model=args.model, invariant=args.invariant, tools=tools, reason=err,
-                                command=" ".join(base))))
-        return 3
-    status, blob = classify(proc, out)
-    phase = "quint run (random simulation)"
+        return emit(args, result("NOT_RUN", reason=err, command=" ".join(sim_cmd), **base), 3)
+    status, blob = classify(proc)
+    checker = "quint run (random simulation)"
+    evidence = "simulated (random, %d steps)" % args.max_steps
+    trace = sim_out if os.path.isfile(sim_out) else None
+    simulation = status
+
     if status == "PASS" and args.verify:
         if not tools["java"]["path"]:
-            print(json.dumps(result("NOT_RUN", model=args.model, invariant=args.invariant, tools=tools,
-                                    reason="quint verify needs java on PATH (the model checkers run on the JVM); "
-                                           "the simulation passed but bounded model checking did not run",
-                                    simulation="PASS")))
-            return 3
-        verify = ["quint", "verify", args.model, "--invariant", args.invariant, "--max-steps", str(args.max_steps),
-                  "--out-itf", out]
+            return emit(args, result("NOT_RUN", reason="quint verify needs java on PATH (the model checkers run "
+                                     "on the JVM); the simulation passed but bounded model checking did not run",
+                                     simulation="PASS", checker=checker, evidence=evidence, **base), 3)
+        verify_cmd = ["quint", "verify", args.model, "--invariant", args.invariant, "--max-steps",
+                      str(args.max_steps), "--out-itf", out]
         if args.backend:
-            verify += ["--backend", args.backend]
-        proc, err = run_quint(verify, args.timeout)
+            verify_cmd += ["--backend", args.backend]
+        proc, err = run_quint(verify_cmd, args.timeout)
         if err:
-            print(json.dumps(result("NOT_RUN", model=args.model, invariant=args.invariant, tools=tools, reason=err,
-                                    command=" ".join(verify), simulation="PASS")))
-            return 3
-        status, blob = classify(proc, out)
-        phase = "quint verify (%s, bounded)" % (args.backend or "default backend")
+            return emit(args, result("NOT_RUN", reason=err, command=" ".join(verify_cmd), simulation="PASS",
+                                     checker=checker, evidence=evidence, **base), 3)
+        status, blob = classify(proc)
+        checker = "quint verify (%s, bounded)" % (args.backend or "default backend")
+        evidence = "model-checked (bounded, %d steps)" % args.max_steps
+        trace = out if os.path.isfile(out) else None
+
     markdown, steps = "", 0
-    if status == "VIOLATED" and os.path.isfile(out):
+    if status == "VIOLATED" and trace:
         try:
-            markdown, steps = render_trace(load_trace(out))
+            markdown, steps = render_trace(load_trace(trace))
         except (ValueError, OSError) as exc:
             markdown, steps = "_(trace could not be rendered: %s)_" % exc, 0
+    elif status == "VIOLATED":
+        markdown = "_(the checker reported a violation but wrote no trace)_"
+
     # Without --expect the observed status stands. With --expect (the planted-fault run), a mismatch is UNEXPECTED.
     final = status
     if args.expect and status in ("PASS", "VIOLATED") and status != args.expect:
         final = "UNEXPECTED"
-    r = result(final, model=args.model, invariant=args.invariant, expected=expect, observed=status, checker=phase,
-               maxSteps=args.max_steps, steps=steps, trace=out if os.path.isfile(out) else None, markdown=markdown,
-               output=tail(blob), tools=tools)
+    r = result(final, observed=status, simulation=simulation, checker=checker, evidence=evidence,
+               verified=bool(args.verify and checker.startswith("quint verify")), steps=steps, trace=trace,
+               markdown=markdown, output=tail(blob), **base)
     if final == "UNEXPECTED":
         r["reason"] = ("the planted fault did not make the checker fail: the model or the invariant is too weak "
                        "to prove anything" if args.expect == "VIOLATED" else "the invariant was violated")
     elif final == "VIOLATED":
         r["reason"] = "the invariant was violated within the bound; the trace below is the counterexample"
-    print(json.dumps(r, indent=2))
-    if final == "PASS":
-        return 0
-    if final == "VIOLATED" and args.expect == "VIOLATED":
-        return 0
-    return 1
+    elif final == "ERROR":
+        r["reason"] = "the checker exited with an error and reported no violation; nothing was proved"
+    elif final == "PASS" and not r["verified"]:
+        r["reason"] = ("random simulation found no violation; this is not model-checked evidence. Add --verify "
+                       "to run the bounded model checker.")
+    code = 0 if (final == "PASS" or (final == "VIOLATED" and args.expect == "VIOLATED")) else 1
+    return emit(args, r, code)
 
 
 def cmd_render(args):
@@ -259,7 +297,8 @@ def build_parser():
     r = sub.add_parser("run", help="run a Quint model against one invariant")
     r.add_argument("model")
     r.add_argument("--invariant", required=True)
-    r.add_argument("--out", help="ITF trace path (default: <model>.trace.itf.json)")
+    r.add_argument("--out", help="ITF trace path for the checker run (default: <model>.trace.itf.json); the simulation writes <model>.sim.itf.json")
+    r.add_argument("--summary", help="where to write the JSON result (default: <model>.result.json)")
     r.add_argument("--max-steps", type=int, default=20, help="the bound (default 20)")
     r.add_argument("--timeout", type=int, default=300, help="seconds per checker run (default 300)")
     r.add_argument("--verify", action="store_true", help="also run bounded model checking after the simulation")

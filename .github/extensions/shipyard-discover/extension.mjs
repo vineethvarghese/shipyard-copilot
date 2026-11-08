@@ -175,15 +175,18 @@ export async function run(ctx) {
       kind: g.kind || 'decision', dependsOn: Array.isArray(g.dependsOn) ? g.dependsOn : [], status: g.status || 'OPEN',
     }));
     if (questions.highestLeverageQuestion && !qList.some((q) => q.question === questions.highestLeverageQuestion)) {
-      qList.unshift({ id: 'HL', question: questions.highestLeverageQuestion, options: [], recommendation: '', blocking: true });
+      qList.unshift({ id: 'HL', question: questions.highestLeverageQuestion, options: [], recommendation: '', blocking: true, kind: 'decision', dependsOn: [], status: 'OPEN' });
     }
     for (const h of humanInputRequests) qList.push({ id: `HIR-${h.from}`, question: h.question, options: [], recommendation: h.recommendation, blocking: true, kind: 'decision', dependsOn: [], status: 'OPEN' });
-    // The first grill round: every open question whose dependencies are all answered or settled. The coordinator
-    // caps it at registry.limits.grillQuestionsPerRound by leverage and recomputes later rounds with discovery GRILL.
-    const settled = (id) => qList.some((q) => q.id === id && (q.status === 'ANSWERED' || q.status === 'SETTLED'));
-    const frontier = Array.isArray(questions.frontier) && questions.frontier.length
-      ? questions.frontier
-      : qList.filter((q) => q.status === 'OPEN' && q.dependsOn.every(settled)).map((q) => q.id);
+    // The first grill round: every open question whose dependencies are all resolved. A dependency counts as
+    // resolved when it is ANSWERED, SETTLED from evidence, or DEFERRED (the human took its default; the default is
+    // ASSUMED but it still unblocks what hangs off it). Discovery's own ordering wins where it is eligible; the
+    // supplemental questions (highest-leverage, humanInputRequested) are merged in so none is skipped. The
+    // coordinator caps the round at registry.limits.grillQuestionsPerRound and recomputes later rounds with GRILL.
+    const resolved = (id) => qList.some((q) => q.id === id && (q.status === 'ANSWERED' || q.status === 'SETTLED' || q.status === 'DEFERRED'));
+    const eligible = qList.filter((q) => q.status === 'OPEN' && q.dependsOn.every(resolved)).map((q) => q.id);
+    const proposed = Array.isArray(questions.frontier) ? questions.frontier.filter((id) => eligible.indexOf(id) !== -1) : [];
+    const frontier = proposed.concat(eligible.filter((id) => proposed.indexOf(id) === -1));
     return { gaps, topConcepts, qList, frontier };
   });
 

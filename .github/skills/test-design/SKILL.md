@@ -51,9 +51,9 @@ Status: DRAFT
 - AC-4: bench_lookup_10k — 10,000 lookups, pass if p95 < 2 ms on the local machine
 
 ## Invariants exercised
-| INV | Tier | Test (file :: name) | Would fail against a no-op stub? |
+| INV | Tier | Test (file :: name) | Violating implementation it fails against |
 |---|---|---|---|
-| INV-002 | properties | tests/cache/isolation_test.py :: never_returns_another_tenants_entry | yes: a stub returning the first entry fails on the second tenant |
+| INV-002 | properties | tests/cache/isolation_test.py :: never_returns_another_tenants_entry | a store that returns the first entry regardless of tenant |
 
 ## Test doubles
 - clock: injected fake clock (system boundary: time). No fake of any `cache.*` module.
@@ -78,8 +78,10 @@ Rules:
 - **Invariants exercised** is a table, one row per invariant under `## Architecture constraints`. At C-10
   `properties` and above, an invariant whose `Check:` says `property` gets a property-based test with the
   repository's library (per `lang-packs`; generate inputs, assert the property, shrink on failure) or a test proving
-  its runtime assertion fires. Fill the last column honestly: say what a do-nothing implementation would return and
-  why the test fails on it. A property you cannot fail that way is a tautology; plan a stronger one.
+  its runtime assertion fires. Fill the last column honestly: name one concrete faulty implementation that violates
+  the invariant and would make the test fail. A safety property may hold for an implementation that does nothing;
+  that is fine, the AC tests reject it. A property for which you cannot name any violating implementation is a
+  tautology; plan a stronger one.
 - **Test doubles only at system boundaries**: an external API, the clock, randomness, the file system where
   unavoidable. Never a fake of the project's own module or an internal collaborator; that couples the test to the
   implementation the implementer is writing in parallel.
@@ -144,8 +146,10 @@ Run these in order. Record every command and its result; never report a result y
 5b. **Formal (C-10 above `none`):** report `formal` in the return block: the tier, every INV whose property test,
    assertion test or trace-replay test ran and passed in `checked`, and every INV planned at this tier that could
    not be checked in `notRun` with the reason ("INV-003: quint not installed"). A model-checked invariant counts as
-   `checked` only when the reliability reviewer's trace file for it is `PASS` and your replay or property test ran;
-   you never run the model checker yourself.
+   `checked` only when `.ai/formal/INV-nnn.result.json` (written by the reliability reviewer's `formal_check.py`
+   run) says `status: PASS` with `verified: true`, its `modelSha256` matches the model file as it is now, and your
+   replay or property test ran. A result whose `evidence` says `simulated`, a stale sha, or a missing result file
+   is `notRun` with that reason. You never run the model checker yourself.
 6. **routingFacts.** Decide each fact from the diff and give one line of evidence (a path, a hunk, an import):
 
 | Fact | True when the diff... | Conservative default |

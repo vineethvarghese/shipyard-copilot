@@ -186,7 +186,7 @@
       "items": {
         "type": "string"
       },
-      "description": "GRILL and QUESTIONS: the ids of the OPEN gaps whose dependsOn are all ANSWERED or SETTLED, highest leverage first. Empty means shared understanding is reached."
+      "description": "GRILL and QUESTIONS: the ids of the OPEN gaps whose dependsOn are all resolved (ANSWERED, SETTLED, or DEFERRED: a default the human took still unblocks what hangs off it), highest leverage first. Empty means nothing is left to ask."
     },
     "round": {
       "type": "integer",

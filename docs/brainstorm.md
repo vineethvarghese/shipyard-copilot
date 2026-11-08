@@ -98,5 +98,6 @@ The goldfish come back once more at the end of planning. One goldfish reads each
 context. It answers one question: could a first-time implementer ship this without asking anything?
 
 It checks the acceptance criteria are testable, the touch sets and branch are stated, the seams the tests will
-observe exist, and the commands run. It returns `READY`, or `NOT_READY` with the questions it would have asked. A
+observe exist or are precisely specified as planned (a new public interface this slice introduces is fine), and
+the commands run. It returns `READY`, or `NOT_READY` with the questions it would have asked. A
 `NOT_READY` slice is fixed, or its questions are raised with you, before the plan reaches you at P8.

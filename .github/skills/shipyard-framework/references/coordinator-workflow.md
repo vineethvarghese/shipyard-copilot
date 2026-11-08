@@ -287,7 +287,10 @@ about deliverable shape, not about design.
 P4 reaches **shared understanding**, not a single answered turn. Discovery drafted a question tree
 (`planning/open-questions.md`; the gap list in `concepts.md`; the result's `questions`, each with `kind`,
 `dependsOn` and `status`). You run the tree as rounds: each round asks the whole **frontier** (every open question
-whose dependencies are settled), waits, records, and recomputes. The loop is yours; discovery does the recomputing.
+whose dependencies are resolved: `ANSWERED`, `SETTLED` from evidence, or `DEFERRED` because the human took the
+default), waits, records, and recomputes. The loop is yours; discovery does the recomputing. Before you call a
+frontier empty, confirm no `OPEN` question remains anywhere in the tree; one that is blocked only by a `DEFERRED`
+default is eligible, not stuck.
 
 ### Round 1
 

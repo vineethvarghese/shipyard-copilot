@@ -36,7 +36,7 @@ Read `SLICE.md` first, then `TEST_PLAN.md`. Check each item; every failed item i
 | 9 | Tiers are ordered simplest first and justified. | A costly tier is planned where a cheaper one reaches the AC. |
 | 10 | Every planned test sits at a seam `SLICE.md` declares. | A test reaches past `## Seams under test` into a private module or internal collaborator; the plan invents a seam the slice never named (that is a question for the planner, not a test). |
 | 11 | Test doubles only at system boundaries. | A fake of the project's own module or an internal collaborator; a double that stands in for the code under test. |
-| 12 | Every invariant row would fail against a no-op stub. | The "would fail against a no-op stub?" column is empty, says "no", or describes a property a do-nothing implementation satisfies (a tautology). At C-10 `properties` and above, an invariant with `Check: property` has no property-based or assertion test. |
+| 12 | Every invariant test can fail. | The "violating implementation it fails against" column is empty or names nothing concrete; the named implementation does not actually violate the invariant; no faulty implementation could fail the property (a tautology). A safety property holding for a do-nothing implementation is not a failure of this check when the AC tests reject that implementation. At C-10 `properties` and above, an invariant with `Check: property` has no property-based or assertion test. |
 
 **Verdict.** `APPROVE` when no item fails at `MINOR` or above. Then, and only then, flip the status line with the
 Edit tool (`Status: DRAFT` → `Status: APPROVED`); that is the only edit you may make to TEST_PLAN.md. Otherwise

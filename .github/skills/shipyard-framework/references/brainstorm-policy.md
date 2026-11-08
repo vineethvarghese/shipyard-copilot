@@ -125,8 +125,9 @@ without asking anything?*
 
 It returns `READY`, or `NOT_READY` with each question the implementer would have to ask. It checks that every
 acceptance criterion is testable as written, both touch sets and the branch are stated, `## Seams under test` names
-a seam that exists in the repository, the verification commands exist, and the prerequisites are named. It files no
-style or design opinions.
+a seam that exists in the repository or a planned seam specified precisely (its interface and the slice that
+introduces it), the verification commands exist, and the prerequisites are named. It files no style or design
+opinions.
 
 `NOT_READY` questions go back to the planner once. Questions the planner can answer from approved sources are fixed in
 the `SLICE.md`; questions only the human can answer end the workflow with `NEEDS_HUMAN` and go to P4. Every slice must

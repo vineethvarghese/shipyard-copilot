@@ -87,7 +87,8 @@ kept, before any slice is cut.
 
 - **A model must be able to fail.** The architect also writes a copy with a planted fault; the reviewer runs it and
   it must fail. A model that cannot fail proves nothing and is rejected.
-- **A property must fail against a do-nothing implementation.** The test plan says how; the code reviewer checks.
+- **Every property test must be able to fail.** The test plan names a faulty implementation that violates the rule
+  and would fail the test; the code reviewer checks it is real.
 - **Properties come from you.** An `invariant` question in the grill is how you state one in your own words. A rule
   an agent inferred is marked `ASSUMED` and can never be reported as model-checked.
 - **Bounded, never proved.** A passing model check is reported as `model-checked (bounded, N steps)`.

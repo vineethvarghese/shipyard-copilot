@@ -16,6 +16,8 @@ args = sys.argv[1:]
 if args == ["--version"]:
     print("0.26.0"); sys.exit(0)
 mode = os.environ.get("FAKE_QUINT", "ok")
+if args and args[0] == "verify":
+    mode = os.environ.get("FAKE_QUINT_VERIFY", mode)
 out = args[args.index("--out-itf") + 1] if "--out-itf" in args else None
 if mode == "hang":
     import time; time.sleep(5)
@@ -54,13 +56,22 @@ class Base(unittest.TestCase):
         os.chmod(path, os.stat(path).st_mode | stat.S_IXUSR)
         return mode
 
-    def run_check(self, *args, mode="ok", with_tool=True):
+    def run_check(self, *args, mode="ok", with_tool=True, verify_mode=None):
         env_path = (self.bindir + os.pathsep if with_tool else "") + os.environ.get("PATH", "")
         if with_tool:
             self.fake_quint(mode)
+            # `quint verify` needs java: point at a stub so the --verify path is reachable in tests
+            java = os.path.join(self.bindir, "java")
+            with open(java, "w") as fh:
+                fh.write("#!/bin/sh\necho 'openjdk 21' >&2\n")
+            os.chmod(java, os.stat(java).st_mode | stat.S_IXUSR)
         old = dict(os.environ)
         os.environ["PATH"] = env_path if with_tool else self.bindir  # without the tool: an empty bin dir only
         os.environ["FAKE_QUINT"] = mode
+        if verify_mode:
+            os.environ["FAKE_QUINT_VERIFY"] = verify_mode
+        else:
+            os.environ.pop("FAKE_QUINT_VERIFY", None)
         try:
             return run_script("formal_check.py", *args)
         finally:
@@ -80,15 +91,49 @@ class Run(Base):
         self.assertIn("never installs", r["reason"])
         self.assertIsNone(r["tools"]["quint"]["path"])
 
-    def test_pass_is_bounded_evidence(self):
+    def test_simulation_pass_is_not_model_checked(self):
         proc = self.run_check("run", self.model, "--invariant", "executeAtMostOnce", "--max-steps", "12")
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         r = self.out(proc)
         self.assertEqual(r["status"], "PASS")
         self.assertEqual(r["maxSteps"], 12)
-        self.assertEqual(r["tier"], "model-checked (bounded)")
+        self.assertEqual(r["evidence"], "simulated (random, 12 steps)")
+        self.assertFalse(r["verified"])
+        self.assertIn("not model-checked evidence", r["reason"])
         self.assertEqual(r["steps"], 0)
         self.assertEqual(r["markdown"], "")
+        self.assertEqual(len(r["modelSha256"]), 64)
+        # the result is persisted next to the model so the verifier can read it later
+        summary = os.path.join(self.dir, "INV-003.result.json")
+        self.assertEqual(r["summary"], summary)
+        with open(summary) as fh:
+            self.assertEqual(json.load(fh)["status"], "PASS")
+
+    def test_verify_pass_is_bounded_model_checked_evidence(self):
+        proc = self.run_check("run", self.model, "--invariant", "executeAtMostOnce", "--verify", "--backend", "tlc",
+                              "--max-steps", "8")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        r = self.out(proc)
+        self.assertEqual(r["status"], "PASS")
+        self.assertTrue(r["verified"])
+        self.assertEqual(r["evidence"], "model-checked (bounded, 8 steps)")
+        self.assertIn("quint verify (tlc", r["checker"])
+        self.assertNotIn("reason", r)
+
+    def test_checker_error_after_simulation_is_an_error_not_a_violation(self):
+        # the simulation wrote a trace; a verify error must not be read as a violation because a file exists
+        proc = self.run_check("run", self.model, "--invariant", "executeAtMostOnce", "--verify", mode="ok",
+                              verify_mode="error")
+        self.assertEqual(proc.returncode, 1)
+        r = self.out(proc)
+        self.assertEqual(r["status"], "ERROR")
+        self.assertEqual(r["simulation"], "PASS")
+        self.assertIn("nothing was proved", r["reason"])
+        # and a planted-fault run that errors is not accepted as a successful fault check
+        proc = self.run_check("run", self.model, "--invariant", "executeAtMostOnce", "--verify", "--expect",
+                              "VIOLATED", mode="ok", verify_mode="error")
+        self.assertEqual(proc.returncode, 1)
+        self.assertEqual(self.out(proc)["status"], "ERROR")
 
     def test_violation_renders_the_trace(self):
         proc = self.run_check("run", self.model, "--invariant", "executeAtMostOnce", mode="violation")
@@ -96,7 +141,8 @@ class Run(Base):
         r = self.out(proc)
         self.assertEqual(r["status"], "VIOLATED")
         self.assertEqual(r["steps"], 4)
-        self.assertTrue(r["trace"].endswith("INV-003.trace.itf.json"))
+        self.assertTrue(r["trace"].endswith("INV-003.sim.itf.json"))
+        self.assertEqual(r["evidence"], "simulated (random, 20 steps)")
         self.assertIn("| Step | status | applied | ackPending |", r["markdown"])
         self.assertIn("| 0 | Pending | 0 | no |", r["markdown"])
         self.assertIn("| 4 | **Leased** | **2** | **yes** |", r["markdown"])

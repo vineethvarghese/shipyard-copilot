@@ -99,17 +99,40 @@ test('the first grill round is the open questions with no unanswered dependency;
   assert.deepEqual(grill.value.frontier, ['G1']);
 });
 
-test('discovery QUESTIONS may return its own frontier, which wins over the computed one', async () => {
+test('discovery QUESTIONS may order the frontier, but ineligible ids are dropped and eligible extras are merged in', async () => {
+  const hir = { question: 'Keep the old API?', evidence: 'CONSUMERS.md', recommendation: 'yes', blocked: 'order' };
+  const run = await runDiscover({ breadth: 0 }, {
+    'architect|DRAFT': [architect({ mode: 'DRAFT', verdict: 'SOUND', humanInputRequested: hir })],
+    'discovery|QUESTIONS': [discovery('QUESTIONS', {
+      artifactsWritten: ['.ai/planning/open-questions.md'],
+      gaps: [
+        { id: 'G1', question: 'A?', whyItMatters: 'w', evidence: 'e', options: [], recommendation: 'r', blocking: true },
+        { id: 'G2', question: 'B?', whyItMatters: 'w', evidence: 'e', options: [], recommendation: 'r', blocking: false, kind: 'decision', dependsOn: ['G1'], status: 'OPEN' },
+      ],
+      frontier: ['G2', 'G1'], highestLeverageQuestion: 'Why at all?',
+    })],
+  });
+  // G2 depends on the still-open G1 so it is not eligible even though discovery listed it; the highest-leverage
+  // question (HL) and the architect's human input request (HIR) are eligible and must not be skipped
+  assert.deepEqual(run.result.frontier, ['G1', 'HL', 'HIR-architect']);
+  const g1 = run.result.questions.find((q) => q.id === 'G1');
+  assert.deepEqual([g1.kind, g1.dependsOn, g1.status], ['decision', [], 'OPEN']);
+  const hl = run.result.questions.find((q) => q.id === 'HL');
+  assert.deepEqual([hl.kind, hl.dependsOn, hl.status], ['decision', [], 'OPEN']);
+});
+
+test('a DEFERRED dependency (default taken) unblocks the questions that hang off it', async () => {
   const run = await runDiscover({ breadth: 0 }, {
     'discovery|QUESTIONS': [discovery('QUESTIONS', {
       artifactsWritten: ['.ai/planning/open-questions.md'],
-      gaps: [{ id: 'G1', question: 'A?', whyItMatters: 'w', evidence: 'e', options: [], recommendation: 'r', blocking: true }],
-      frontier: ['G1'], highestLeverageQuestion: 'A?',
+      gaps: [
+        { id: 'G1', question: 'A?', whyItMatters: 'w', evidence: 'e', options: ['x'], recommendation: 'x', blocking: false, kind: 'decision', dependsOn: [], status: 'DEFERRED' },
+        { id: 'G2', question: 'B?', whyItMatters: 'w', evidence: 'e', options: [], recommendation: 'r', blocking: true, kind: 'decision', dependsOn: ['G1'], status: 'OPEN' },
+      ],
+      highestLeverageQuestion: 'B?',
     })],
   });
-  assert.deepEqual(run.result.frontier, ['G1']);
-  // legacy gaps without kind/dependsOn/status are normalised
-  assert.deepEqual([run.result.questions[0].kind, run.result.questions[0].dependsOn, run.result.questions[0].status], ['decision', [], 'OPEN']);
+  assert.deepEqual(run.result.frontier, ['G2']);
 });
 
 test('formal rigour flows into the scan and the architect draft; an invalid value fails loudly', async () => {

@@ -466,9 +466,9 @@ Revision: <0 | 1 | 2> of 2    Derived from: SLICE.md acceptance criteria (not fr
 ## Failure, edge and boundary cases   <one line each, mapped to an AC>
 ## Benchmarks                 <for every performance AC: what is measured, baseline, threshold, command; NONE if none>
 ## Invariants exercised
-| INV | Tier | Test (file :: name) | Would fail against a no-op stub? |
-|-----|------|---------------------|----------------------------------|
-| INV-002 | properties | tests/cache/isolation_test.py :: never_returns_another_tenants_entry | yes: stub returns the first entry |
+| INV | Tier | Test (file :: name) | Violating implementation it fails against |
+|-----|------|---------------------|-------------------------------------------|
+| INV-002 | properties | tests/cache/isolation_test.py :: never_returns_another_tenants_entry | a store that returns the first entry regardless of tenant |
 ## Test doubles               <each fake and the system boundary it stands in for (external API, clock, randomness,
                               file system); never an internal collaborator; NONE if none>
 ## ACs not verifiable here    <AC / why / what is checked instead; NONE if none>

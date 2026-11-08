@@ -94,14 +94,18 @@ broken action, marked in a comment, that must make the checker fail. You run the
 
    ```bash
    python3 shipyard/scripts/formal_check.py run .ai/formal/INV-003.qnt --invariant executeAtMostOnce \
-       --out .ai/formal/INV-003.trace.itf.json --timeout 300
+       --verify --backend tlc --max-steps 20 --timeout 300 --out .ai/formal/INV-003.trace.itf.json
    ```
 
-   It prints a JSON summary (`status`: `PASS`, `VIOLATED`, `NOT_RUN`, `ERROR` or `UNEXPECTED`; the checker and
-   bound; `steps`; `markdown`, the trace rendered as a step table). Then run the sibling planted-fault model with
-   `--expect VIOLATED` (`.ai/formal/INV-003.fault.qnt`): that run must come back `VIOLATED`, or the script reports
-   `UNEXPECTED`. Never install tooling (the readonly-bash hook stops you anyway): a `NOT_RUN`
-   with its reason is a correct result, and the coordinator carries it to the human as a risk.
+   `--verify` is what makes it model checking: without it the script only runs a random simulation and labels the
+   result `simulated`, never `model-checked`. It prints a JSON summary and writes the same object to
+   `.ai/formal/INV-003.result.json` (`status`: `PASS`, `VIOLATED`, `NOT_RUN`, `ERROR` or `UNEXPECTED`; `checker`;
+   `evidence`, e.g. `model-checked (bounded, 20 steps)`; `modelSha256`; `steps`; `markdown`, the trace rendered as
+   a step table). The verifier reads that result file later. Then run the sibling planted-fault model with
+   `--expect VIOLATED` (`.ai/formal/INV-003.fault.qnt`, same flags): that run must come back `VIOLATED`; `UNEXPECTED`
+   means the model is too weak, `ERROR` means the tooling failed and nothing was shown. Never install tooling (the
+   readonly-bash hook stops you anyway): a `NOT_RUN` with its reason is a correct result, and the coordinator
+   carries it to the human as a risk.
 2. A **`VIOLATED` run** is a finding with the six parts: the trace is the failure scenario (paste the rendered step
    table into `Evidence:`), plausibility from the events the trace needs, impact from the invariant's
    `Why it matters:`, and the minimum correction is usually a restated invariant plus the smallest mechanism
@@ -109,7 +113,9 @@ broken action, marked in a comment, that must make the checker fail. You run the
    that tell the story of the trace in glossary terms; the human reads those, not the table.
 3. A **planted fault that passes** is a finding ("model too weak to fail", owner `architect`): the invariant or the
    model is vacuous and proves nothing.
-4. A **`PASS`** is bounded evidence, never a proof. Say `model-checked (bounded, N steps)` and name the bound.
+4. A **`PASS`** from `quint verify` is bounded evidence, never a proof. Say `model-checked (bounded, N steps)` and
+   name the bound. A `PASS` whose `evidence` says `simulated` is not model-checked evidence: report it as
+   `NOT_RUN (simulation only)` and say why the checker did not run.
 5. **Never add machinery because a model could be written for it.** Tier 2 is for the invariants the reliability
    probes already tag; a checked model of a create-read-update flow is cost without signal, and the simplicity
    reviewer may file against it.

@@ -134,8 +134,9 @@ with the evidence you have.
 The questions each goldfish returned become leaves of the tree, tagged with their lens in `Evidence:`, so none is
 lost; the outsider sweep's questions usually become `scope` gaps about the request itself.
 
-In QUESTIONS mode, the concept pick and the **frontier** (every `OPEN` gap whose `Depends on` are all `ANSWERED` or
-`SETTLED`, highest leverage first) become round 1 of the P4 grill. Return the frontier's ids in `frontier`; a gap
+In QUESTIONS mode, the concept pick and the **frontier** (every `OPEN` gap whose `Depends on` are all resolved:
+`ANSWERED`, `SETTLED`, or `DEFERRED` because the human took the default, which still unblocks what hangs off it;
+highest leverage first) become round 1 of the P4 grill. Return the frontier's ids in `frontier`; a gap
 whose dependency is still open belongs to a later round, not this one. Non-blocking gaps in the frontier are listed
 with their defaults so the human can override them in the same turn.
 
@@ -160,8 +161,9 @@ The coordinator calls you once per round with the round number and the human's a
 6. **Nominate decisions.** For each answer, judge three things: hard to reverse; surprising without context; the
    result of a real trade-off. Return every answer as a `decisionCandidates` entry with the three flags; the
    coordinator writes an ADR only when all three are true.
-7. **Recompute the frontier** (Step 5 definition) and return it in `frontier`, highest leverage first. An empty
-   frontier means shared understanding: nothing left silently assumed.
+7. **Recompute the frontier** (Step 5 definition: a `DEFERRED` dependency counts as resolved) and return it in
+   `frontier`, highest leverage first. An empty frontier means nothing is left to ask; the defaults the human took
+   stay `ASSUMED` and are listed on the checklist, so nothing is silently assumed.
 
 You never talk to the human and never decide for them: a recommendation is still a question.
 
