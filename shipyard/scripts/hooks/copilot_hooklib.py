@@ -241,7 +241,7 @@ def role_from_name(name):
 
 def _find_project(cwd):
     """Walk up from cwd to the folder that holds .ai/state.json (or .git). Falls back to cwd."""
-    explicit = os.environ.get("SHIPYARD_PROJECT_DIR") or os.environ.get("CLAUDE_PROJECT_DIR")
+    explicit = os.environ.get("SHIPYARD_PROJECT_DIR") or os.environ.get("CLAUDE_PROJECT_DIR")  # Shipyard's own var wins
     if explicit:
         return os.path.realpath(os.path.abspath(os.path.expanduser(explicit)))
     start = os.path.realpath(os.path.abspath(os.path.expanduser(cwd))) if cwd else os.path.realpath(os.getcwd())

@@ -182,7 +182,9 @@ def real(path):
 
 
 def project_dir(data):
-    env = os.environ.get("CLAUDE_PROJECT_DIR") or os.environ.get("SHIPYARD_PROJECT_DIR")
+    # SHIPYARD_PROJECT_DIR first: a Copilot session started from inside another agent harness can inherit that
+    # harness's CLAUDE_PROJECT_DIR, which then points at the wrong repository.
+    env = os.environ.get("SHIPYARD_PROJECT_DIR") or os.environ.get("CLAUDE_PROJECT_DIR")
     if env:
         return real(env)
     found = data.get("project_dir") if isinstance(data, dict) else None  # set by the Copilot adapter

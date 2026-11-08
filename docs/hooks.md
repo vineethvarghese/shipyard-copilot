@@ -166,5 +166,16 @@ These points were observed on a real CLI session in this repository and are no l
 - All 13 skills under `.github/skills` and all 5 instruction files are discovered (`copilot skill list`,
   `copilot instruction list`).
 
+- End to end, in a scratch repository with `.ai/state.json`, an active slice and a `DRAFT` test plan: the
+  implementer's write inside the code touch set was refused by test-plan-gate ("test plan first"); after the plan
+  was set to `APPROVED` the same write landed, and a write into the test touch set was refused by write-scope
+  ("Tests belong to shipyard:verifier"). Hooks run before Copilot's own permission prompt.
+- Run Copilot from the folder that holds `.github/`: started from a subfolder, the repository hooks were not loaded.
+- Copilot's permission name for file writes is `write` (`--allow-tool 'write'`); `--allow-tool 'edit'` or `'create'`
+  do not cover `apply_patch`.
+- A Copilot session started from inside another agent harness inherits that harness's environment. Shipyard's own
+  `SHIPYARD_PROJECT_DIR` therefore takes precedence over `CLAUDE_PROJECT_DIR` in the hooks.
+
 Still unverified: whether `agentName` in subagent payloads is the frontmatter name, VS Code and JetBrains hook
-behaviour, and whether `matcher` is honoured inside agent frontmatter.
+behaviour, whether `matcher` is honoured inside agent frontmatter, and everything about dynamic workflows (the
+folder must be in `trustedFolders` first; see docs/workflows.md).
