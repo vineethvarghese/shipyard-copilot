@@ -52,9 +52,13 @@ def scan(text):
 def main(ctx):
     ti = ctx.tool_input
     path = ti.get("file_path") or ti.get("notebook_path") or ti.get("path")
-    rel = lib.normalize_path(ctx.project, path, ctx.cwd) if isinstance(path, str) else None
-    if not lib.under_ai(rel):
+    extra = ti.get("extra_paths")
+    candidates = [path] + [p for p in (extra if isinstance(extra, list) else []) if isinstance(p, str)]
+    rels = [lib.normalize_path(ctx.project, c, ctx.cwd) for c in candidates if isinstance(c, str)]
+    rels = [r for r in rels if lib.under_ai(r)]
+    if not rels:
         return
+    rel = rels[0]
     hits = []
     for t in texts(ti):
         hits.extend(scan(t))

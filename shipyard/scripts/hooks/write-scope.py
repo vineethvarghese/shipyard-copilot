@@ -265,13 +265,16 @@ def main(ctx):
     path = target_path(ctx.tool_input)
     if path is None:
         ctx.deny("could not find the target path in the %s tool input." % (ctx.tool_name or "write"))
-    rel = lib.normalize_path(ctx.project, path, ctx.cwd)
-    if rel is None:
-        ctx.deny("'%s' is outside the project (%s). Shipyard agents write only inside the project."
-                 % (path, ctx.project))
-    if rel == "":
-        ctx.deny("refusing to write the project directory itself.")
-    check_path(ctx, rel)
+    extra = ctx.tool_input.get("extra_paths")
+    paths = [path] + [p for p in (extra if isinstance(extra, list) else []) if isinstance(p, str) and p.strip()]
+    for one in paths:  # a multi-file patch is checked file by file; the first denial wins
+        rel = lib.normalize_path(ctx.project, one, ctx.cwd)
+        if rel is None:
+            ctx.deny("'%s' is outside the project (%s). Shipyard agents write only inside the project."
+                     % (one, ctx.project))
+        if rel == "":
+            ctx.deny("refusing to write the project directory itself.")
+        check_path(ctx, rel)
 
 
 if __name__ == "__main__":

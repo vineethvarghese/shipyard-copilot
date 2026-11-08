@@ -355,3 +355,56 @@ class Adapter(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RealCliPayloads(HookTestCase):
+    """Payloads captured from Copilot CLI 1.0.107 on 2026-11-08: `view` sends toolArgs as an object with
+    `path`; `apply_patch` sends the patch document itself as a raw string."""
+    script = "write-scope.py"
+
+    PATCH_ADD = "*** Begin Patch\n*** Add File: %s/hook-probe.txt\n+probe\n*** End Patch\n"
+    PATCH_TWO = ("*** Begin Patch\n*** Update File: %s/src/cache/store.ts\n@@\n-a\n+b\n"
+                 "*** Add File: %s/src/other.ts\n+export const x = 1;\n*** End Patch\n")
+
+    def test_view_object_args_map_to_read(self):
+        data = {"sessionId": "s", "timestamp": 1794105655619, "cwd": self.repo.path, "toolCallId": "c1",
+                "toolName": "view", "toolArgs": {"path": self.repo.path + "/README.md", "view_range": [1, 3]}}
+        out = copilot_hooklib.adapt(data)
+        self.assertEqual(out["tool_name"], "Read")
+        self.assertEqual(out["tool_input"]["file_path"], self.repo.path + "/README.md")
+
+    def test_apply_patch_raw_string_add_file_is_a_write(self):
+        data = {"sessionId": "s", "timestamp": 1, "cwd": self.repo.path, "toolCallId": "c2",
+                "toolName": "apply_patch", "toolArgs": self.PATCH_ADD % self.repo.path}
+        out = copilot_hooklib.adapt(data)
+        self.assertEqual(out["tool_name"], "Write")
+        self.assertEqual(out["tool_input"]["file_path"], self.repo.path + "/hook-probe.txt")
+        self.assertEqual(out["tool_input"]["content"], "probe")
+        self.assertEqual(out["tool_input"]["patch_files"], [{"kind": "Add", "path": self.repo.path + "/hook-probe.txt"}])
+
+    def test_apply_patch_outside_touch_set_denied_with_the_real_reason(self):
+        self.repo.set_plan("APPROVED")
+        res = self.run_copilot("apply_patch", self.PATCH_ADD % self.repo.path, role="implementer")
+        self.assertCopilotDenied(res, "code touch set")
+        self.assertNotIn("could not find the target path", res.stderr + res.stdout)
+
+    def test_apply_patch_inside_touch_set_allowed(self):
+        self.repo.set_plan("APPROVED")
+        patch = "*** Begin Patch\n*** Add File: %s/src/cache/new.ts\n+export const y = 2;\n*** End Patch\n" % self.repo.path
+        self.assertAllowed(self.run_copilot("apply_patch", patch, role="implementer"))
+
+    def test_multi_file_patch_checks_every_file(self):
+        self.repo.set_plan("APPROVED")
+        res = self.run_copilot("apply_patch", self.PATCH_TWO % (self.repo.path, self.repo.path), role="implementer")
+        self.assertCopilotDenied(res, "src/other.ts")
+
+    def test_multi_file_patch_gated_before_approval(self):
+        res = self.run_copilot("apply_patch", self.PATCH_TWO % (self.repo.path, self.repo.path), role="implementer",
+                               script="test-plan-gate.py")
+        self.assertCopilotDenied(res, "test plan first")
+
+    def test_patch_into_ai_is_scanned_for_secrets(self):
+        patch = ("*** Begin Patch\n*** Add File: %s/.ai/planning/notes.md\n+api_key = \"sk_live_%s\"\n*** End Patch\n"
+                 % (self.repo.path, "a" * 40))
+        res = self.run_copilot("apply_patch", patch, role="coordinator", script="secrets-guard.py")
+        self.assertCopilotDenied(res, "possible secret")

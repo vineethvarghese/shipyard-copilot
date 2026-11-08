@@ -46,6 +46,7 @@ later check). Details: [docs/capability-map.md](docs/capability-map.md) and
 | Reviewer returns checked against a schema | full inside workflows | after the fact | after the fact |
 
 Everything marked (unverified) in the docs came from a single source or a page that was silent on the point.
+What has been confirmed on a real Copilot CLI session is listed in [docs/hooks.md](docs/hooks.md#verified-against-copilot-cli-10107-2026-11-08).
 
 ## Quickstart
 

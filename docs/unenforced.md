@@ -6,7 +6,7 @@ a mode with something that matters. Points marked (unverified) have not been con
 
 ## Dropped
 
-1. **`effort` per mode and `maxTurns` per agent.** No `.agent.md` keys for them. Replaced by `model` per agent,
+1. **`effort` per mode and `maxTurns` per agent.** No `.agent.md` keys for them. The CLI does take `--reasoning-effort` per launch (verified on 1.0.107), so the coordinator session's effort is settable; per-subagent effort is not. Replaced by `model` per agent,
    workflow `limits`, and the `Budget:` line in every brief.
 2. **Plugin evals** (the original plugin's eval suites). Replaced by conformance runs on `examples/sample-project` (planned).
 3. **Marketplace distribution.** Replaced by this template repository.

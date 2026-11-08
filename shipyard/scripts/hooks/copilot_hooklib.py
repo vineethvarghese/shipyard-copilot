@@ -131,6 +131,10 @@ def parse_args(raw, claude_name):
                 text = parsed
             if claude_name == "Bash":
                 return {"command": text}
+            if claude_name in ("Edit", "Write") and _PATCH_FILE_RX.search(text):
+                # `apply_patch` (the CLI's file-writing tool, observed 2026-11) sends the patch text itself as
+                # toolArgs, not a JSON object.
+                return {"patch": text}
     return {}
 
 
@@ -141,7 +145,28 @@ def _pick(args, candidates):
     return None
 
 
-_PATCH_FILE_RX = re.compile(r"^\*\*\*\s+(?:Add|Update|Delete)\s+File:\s*(.+?)\s*$", re.M)
+_PATCH_FILE_RX = re.compile(r"^\*\*\*\s+(Add|Update|Delete)\s+File:\s*(.+?)\s*$", re.M)
+_PATCH_MOVE_RX = re.compile(r"^\*\*\*\s+Move\s+to:\s*(.+?)\s*$", re.M)
+
+
+def parse_patch(patch):
+    """Split an `apply_patch` document into (kind, path, added_text) per file. Kinds: Add, Update, Delete.
+    A `*** Move to:` line adds the destination as a second Update target."""
+    out = []
+    current = None
+    for line in patch.splitlines():
+        m = _PATCH_FILE_RX.match(line)
+        if m:
+            current = [m.group(1), m.group(2).strip(), []]
+            out.append(current)
+            continue
+        mv = _PATCH_MOVE_RX.match(line)
+        if mv:
+            out.append(["Update", mv.group(1).strip(), []])
+            continue
+        if current is not None and line.startswith("+") and not line.startswith("+++"):
+            current[2].append(line[1:])
+    return [(k, p, "\n".join(added)) for k, p, added in out]
 
 
 def _editor_subcommand(claude_name, args):
@@ -166,13 +191,22 @@ def claude_tool_input(claude_name, args):
         value = _pick(args, candidates)
         if value is not None:
             out[claude_key] = value
-    if claude_name == "Edit" and "file_path" not in out:
+    if claude_name in ("Edit", "Write") and "file_path" not in out:
         patch = _pick(args, ("patch", "input", "diff"))
         if isinstance(patch, str):
-            files = _PATCH_FILE_RX.findall(patch)
+            files = parse_patch(patch)
             if files:
-                out["file_path"] = files[0]
-                out["new_string"] = patch
+                kinds = {k for k, _, _ in files}
+                out["file_path"] = files[0][1]
+                out["extra_paths"] = [p for _, p, _ in files[1:]]
+                added = "\n".join(t for _, _, t in files if t)
+                if kinds == {"Add"}:
+                    out["content"] = added          # a pure Add behaves like Write
+                    out["_claude_tool"] = "Write"
+                else:
+                    out["new_string"] = added
+                    out["_claude_tool"] = "Edit"
+                out["patch_files"] = [{"kind": k, "path": p} for k, p, _ in files]
     if claude_name == "Grep":
         mode = out.get("output_mode")
         if isinstance(mode, str):
@@ -310,9 +344,11 @@ def adapt(data, event=None):
         claude_name = claude_tool_name(data.get("toolName"))
         args = parse_args(data.get("toolArgs"), claude_name)
         claude_name = _editor_subcommand(claude_name, args)
-        out["tool_name"] = claude_name
+        tool_input = claude_tool_input(claude_name, args)
+        override = tool_input.pop("_claude_tool", None)
+        out["tool_name"] = override or claude_name
         out["copilot_tool_name"] = data.get("toolName") or ""
-        out["tool_input"] = claude_tool_input(claude_name, args)
+        out["tool_input"] = tool_input
         out["tool_use_id"] = data.get("toolCallId") or data.get("toolUseId") or ""
         agent_id = data.get("agentId")
         out["agent_id"] = agent_id if isinstance(agent_id, str) and agent_id else "%s:%s" % (session, role or "")

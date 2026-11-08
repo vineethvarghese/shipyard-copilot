@@ -141,3 +141,30 @@ python3 -m unittest discover -s shipyard/tests/hooks
 `test_copilot_payloads.py` covers the Copilot shape (role sources, aliases, the JSON decisions, the findings-gate
 retry cap); `test_wiring.py` binds `.github/hooks/shipyard.json` to the scripts and the alias table; the other
 files are the original rule tests with Claude-shaped payloads, unchanged.
+
+
+## Verified against Copilot CLI 1.0.107 (2026-11-08)
+
+These points were observed on a real CLI session in this repository and are no longer unverified:
+
+- The repository hook file `.github/hooks/shipyard.json` is loaded once the folder is trusted (`--trust-folder` for a
+  prompt-mode session, or the folder in `trustedFolders`). Without trust the CLI prints a warning and skips it.
+- A `preToolUse` deny is honoured: the agent sees `Denied by preToolUse hook: Shipyard write-scope blocked this: …`
+  and the file is not written.
+- Tool names and argument shapes seen: `view` with `toolArgs` as a JSON object (`{"path": "...", "view_range":
+  [1, 3]}`), and `apply_patch` with `toolArgs` as the raw patch text (`*** Begin Patch` / `*** Add File: <path>` /
+  `+line` / `*** End Patch`). The adapter parses `Add`, `Update`, `Delete` and `Move to` headers and the hooks check
+  every file in a multi-file patch. `--allow-tool 'create'` does not cover `apply_patch`; allow the tool by its real
+  name.
+- `user-invocable: false` does not stop `copilot --agent=<specialist>` from loading the agent. The caller check in
+  each specialist's body does the refusing, as designed.
+- The CLI warns `unknown fields ignored: agents, handoffs` on the coordinator file. Those keys are read by VS Code
+  only; the warning is harmless.
+- `--trust-folder` works only with `-p`, so `copilot workflow run` needs the folder in `trustedFolders`.
+- `--reasoning-effort none|minimal|low|medium|high|xhigh|max` and `--model` exist as launch flags, so the
+  coordinator session's effort can be set per launch. An administrator-managed model setting can override `--model`.
+- All 13 skills under `.github/skills` and all 5 instruction files are discovered (`copilot skill list`,
+  `copilot instruction list`).
+
+Still unverified: whether `agentName` in subagent payloads is the frontmatter name, VS Code and JetBrains hook
+behaviour, and whether `matcher` is honoured inside agent frontmatter.

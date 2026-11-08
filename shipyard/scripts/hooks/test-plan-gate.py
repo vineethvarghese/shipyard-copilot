@@ -36,9 +36,16 @@ def main(ctx):
         rel = rels[0]
     else:
         path = ti.get("file_path") or ti.get("notebook_path") or ti.get("path")
-        rel = lib.normalize_path(ctx.project, path, ctx.cwd) if isinstance(path, str) else None
-        if lib.under_ai(rel):
+        extra = ti.get("extra_paths")
+        candidates = [path] + [p for p in (extra if isinstance(extra, list) else []) if isinstance(p, str)]
+        rels = []
+        for one in candidates:
+            r = lib.normalize_path(ctx.project, one, ctx.cwd) if isinstance(one, str) else None
+            if r is not None and not lib.under_ai(r):
+                rels.append(r)
+        if not rels:
             return  # .ai/ files (e.g. the verifier's TEST_PLAN.md) are not gated here; write-scope decides.
+        rel = rels[0]
     state, err = ctx.state()
     if state is None:
         ctx.deny("shipyard:%s may not write code or tests: %s, so the test-plan approval cannot be checked."

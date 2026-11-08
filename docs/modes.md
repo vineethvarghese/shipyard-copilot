@@ -47,7 +47,7 @@ continues in IDE mode with the prompt files.
 
 Model settings: the CLI resolves a model as agent `model` > `--model` > `COPILOT_MODEL` > settings. The agent
 files carry no model id until you set `MODEL_MAP` in `shipyard/scripts/gen_agents.py` (or pass `--model DEEP=<id>`)
-and regenerate; until then every agent runs at the session model. Effort is a global CLI setting (`effortLevel`),
+and regenerate; until then every agent runs at the session model. Effort is the `--reasoning-effort` launch flag or the `effortLevel` setting (verified on CLI 1.0.107),
 not per agent.
 
 ## IDE mode
