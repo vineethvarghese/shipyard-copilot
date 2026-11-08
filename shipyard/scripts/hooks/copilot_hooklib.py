@@ -241,7 +241,8 @@ def role_from_name(name):
 
 def _find_project(cwd):
     """Walk up from cwd to the folder that holds .ai/state.json (or .git). Falls back to cwd."""
-    explicit = os.environ.get("SHIPYARD_PROJECT_DIR") or os.environ.get("CLAUDE_PROJECT_DIR")  # Shipyard's own var wins
+    explicit = (os.environ.get("SHIPYARD_PROJECT_DIR") or os.environ.get("COPILOT_PROJECT_DIR")
+                or os.environ.get("CLAUDE_PROJECT_DIR"))  # Shipyard's own variable, then Copilot's, then Claude Code's
     if explicit:
         return os.path.realpath(os.path.abspath(os.path.expanduser(explicit)))
     start = os.path.realpath(os.path.abspath(os.path.expanduser(cwd))) if cwd else os.path.realpath(os.getcwd())

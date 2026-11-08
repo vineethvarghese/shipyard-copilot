@@ -422,3 +422,11 @@ class ProjectDirPrecedence(HookTestCase):
             res = self.run_copilot("apply_patch", "*** Begin Patch\n*** Add File: %s/src/cache/ok.ts\n+x\n*** End Patch\n" % self.repo.path,
                                    role="implementer", env_extra={"CLAUDE_PROJECT_DIR": other, "SHIPYARD_PROJECT_DIR": self.repo.path})
             self.assertAllowed(res)
+
+    def test_copilot_project_dir_beats_inherited_claude_project_dir(self):
+        self.repo.set_plan("APPROVED")
+        import tempfile
+        with tempfile.TemporaryDirectory() as other:
+            res = self.run_copilot("apply_patch", "*** Begin Patch\n*** Add File: %s/src/cache/ok2.ts\n+x\n*** End Patch\n" % self.repo.path,
+                                   role="implementer", env_extra={"CLAUDE_PROJECT_DIR": other, "COPILOT_PROJECT_DIR": self.repo.path})
+            self.assertAllowed(res)

@@ -173,8 +173,11 @@ These points were observed on a real CLI session in this repository and are no l
 - Run Copilot from the folder that holds `.github/`: started from a subfolder, the repository hooks were not loaded.
 - Copilot's permission name for file writes is `write` (`--allow-tool 'write'`); `--allow-tool 'edit'` or `'create'`
   do not cover `apply_patch`.
-- A Copilot session started from inside another agent harness inherits that harness's environment. Shipyard's own
-  `SHIPYARD_PROJECT_DIR` therefore takes precedence over `CLAUDE_PROJECT_DIR` in the hooks.
+- Hook processes receive the full environment of the Copilot process plus `COPILOT_PROJECT_DIR`, `COPILOT_HOOK_DIR`
+  and `COPILOT_HOOK_DEPTH`. A Copilot session started from inside a Claude Code session therefore inherits that
+  session's `CLAUDE_PROJECT_DIR`, which points at the wrong repository. The hooks resolve the project as
+  `SHIPYARD_PROJECT_DIR`, then `COPILOT_PROJECT_DIR`, then `CLAUDE_PROJECT_DIR`, then the nearest `.ai/state.json`
+  above the working directory.
 
 Still unverified: whether `agentName` in subagent payloads is the frontmatter name, VS Code and JetBrains hook
 behaviour, whether `matcher` is honoured inside agent frontmatter, and everything about dynamic workflows (the
