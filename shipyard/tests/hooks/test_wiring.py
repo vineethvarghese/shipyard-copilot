@@ -180,6 +180,11 @@ class SubagentEvents(unittest.TestCase):
                 self.assertEqual(copilot_hooklib.role_from_name(form % name), "%s-reviewer" % name)
         self.assertIsNone(copilot_hooklib.role_from_name("general-purpose"))
         self.assertIsNone(copilot_hooklib.role_from_name("shipyard-code-reviewer-extra"))
+        # a plugin install namespaces every agent id with the plugin name
+        self.assertEqual(copilot_hooklib.role_from_name("shipyard:shipyard-code-reviewer"), "code-reviewer")
+        self.assertEqual(copilot_hooklib.role_from_name("shipyard:shipyard-coordinator"), "coordinator")
+        self.assertIsNone(copilot_hooklib.role_from_name("shipyard:"))
+        self.assertIsNone(copilot_hooklib.role_from_name("other-plugin:shipyard-verifier"))
 
 
 class RoleSeam(unittest.TestCase):

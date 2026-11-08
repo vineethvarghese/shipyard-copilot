@@ -64,7 +64,7 @@ docs page that was silent on the point; it must be confirmed against `copilot --
 | Block a subagent from stopping without its deliverable | **Supported**: `subagentStop` → `{decision: "block", reason}` (CLI, cloud) | hooks-reference |
 | JSON-schema-enforced structured output of a session | **Not supported** outside dynamic workflows (`--output-format json` is an event stream); third-party comparison lists Copilot CLI as "none" | cli-programmatic-reference |
 | Headless runs in CI | **Supported**: `copilot -p … --allow-tool…`, `copilot workflow run … --result-file`; GitHub recommends Agentic Workflows (gh-aw) for Actions automation | https://docs.github.com/en/copilot/how-tos/copilot-cli/automate-copilot-cli/run-cli-programmatically |
-| Plugin packaging | **Partially**: CLI plugins carry `hooks.json`, skills, agents, extensions; marketplace exists for workflows; cloud agent reads only `.github/` | use-dynamic-workflows · hooks-reference |
+| Plugin packaging | **Supported for the CLI** (verified 1.0.107): `plugin.json` with `agents`, `skills`, `extensions` and `hooks` path keys; `${PLUGIN_ROOT}` expands in hook commands; plugin agents are namespaced `<plugin>:<agent>`; plugin workflows register without folder trust; the cloud agent and the IDEs read only `.github/`, hence the project installer | use-dynamic-workflows · hooks-reference |
 
 ### 1.3 How GitHub Actions and repo settings fill gaps
 
@@ -117,7 +117,7 @@ plus a later check, not enforcement at the moment of action.
 | **Compute classes** COORDINATOR/DEEP/STANDARD (model + effort) | `model` per `.agent.md` from the registry (e.g. DEEP → `claude-opus-4…`/`gpt-5.x`, STANDARD → cheaper); effort: SDK `reasoningEffort` in workflow-spawned agents **(unverified)**, otherwise `effortLevel` global | degraded | Document two settings profiles; VS Code's cost-tier ceiling gives "delegate never above coordinator" for free. |
 | **Parallelism** (implementer ∥ verifier, concurrent reviewers) | `ctx.parallel` in workflows; `/fleet`; VS Code parallel subagents | degraded outside workflows | Prompt files run reviewers sequentially; acceptable. |
 | **Evals** (`claude plugin eval`) | None | manual | Actions job runs `copilot -p` / `copilot workflow run` on `examples/sample-project` with `--result-file` and asserts on the JSON. |
-| **Plugin install / marketplace** | Template repo copied into `.github/`; optional CLI plugin bundle | degraded | `gh repo create --template` or a `npx shipyard-copilot init` script. |
+| **Plugin install / marketplace** | `copilot plugin install <owner>/shipyard-copilot` for the CLI; `install.sh` + `shipyard/scripts/install.py` (`init`, `update`, `status`, `remove`, checksummed manifest) for the project | supported | Marketplace listing pending. |
 
 ## B. Proposed repository layout (template repo `shipyard-copilot`)
 
@@ -255,7 +255,8 @@ enforced; and Copilot must **not** be granted the ruleset bypass or it can push 
 1. Shipyard-style `effort` per mode and `maxTurns` per agent: no `.agent.md` keys. Replaced by `model` per agent,
    workflow `limits`, and a `Budget:` line.
 2. `claude plugin eval` suites: replaced by CI conformance runs on `examples/sample-project`.
-3. Plugin marketplace distribution: replaced by a template repo and an init script.
+3. Plugin marketplace listing: the CLI plugin installs from the repository directly and the project install has an
+   installer with `remove`; only the marketplace entry is outstanding.
 4. The single-entry-point guarantee (`Caller: shipyard:coordinator` refusal in every specialist): kept as text in each
    agent body, enforced only by the CLI `brief-check` hook on `task` calls and by `user-invocable: false`.
 5. Hook retries (`findings-gate` sends a reviewer back up to 3 times): kept where `subagentStop` can `block`; the

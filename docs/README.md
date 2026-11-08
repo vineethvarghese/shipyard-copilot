@@ -62,6 +62,8 @@ New here? Read the first five pages in order. Read the rest when you need them.
 | ADR | Decision |
 |---|---|
 | [ADR-0001](decisions/ADR-0001-three-modes.md) | One procedure, three modes; gates recorded in `state.json`; fidelity stated per mode |
+| [ADR-0002](decisions/ADR-0002-dynamic-workflows.md) | The three saved workflows become Copilot CLI dynamic workflows; one library isolates the preview API |
+| [ADR-0003](decisions/ADR-0003-plugin-and-project-install.md) | Two installs: a CLI plugin (`copilot plugin install`) and a checksummed project install with `remove` |
 
 The decisions Shipyard itself made (saved workflows, test plan first, local merge and never `main`, roles not
 agent names, hooks over prompt rules, `.ai/` off the work branches, the P4 grill, formal rigour tiers) carry

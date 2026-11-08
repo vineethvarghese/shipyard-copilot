@@ -179,6 +179,24 @@ These points were observed on a real CLI session in this repository and are no l
   `SHIPYARD_PROJECT_DIR`, then `COPILOT_PROJECT_DIR`, then `CLAUDE_PROJECT_DIR`, then the nearest `.ai/state.json`
   above the working directory.
 
+## As a plugin (verified against Copilot CLI 1.0.107, 2026-11-09)
+
+`hooks.json` at the repository root is the plugin's hook file, generated from `.github/hooks/shipyard.json` by
+`python3 shipyard/scripts/gen_plugin.py` (CI runs `--check`). Observed with a plugin mounted by `--plugin-dir`:
+
+- The CLI expands `${PLUGIN_ROOT}` (also `${COPILOT_PLUGIN_ROOT}` and `${CLAUDE_PLUGIN_ROOT}`) inside the `bash`
+  command before running it, so `python3 "${PLUGIN_ROOT}/shipyard/scripts/hooks/<hook>.py"` finds the scripts
+  wherever the plugin was installed.
+- A plugin hook runs with the **plugin folder** as its working directory, not the project. The hook environment
+  carries `PLUGIN_ROOT`, `COPILOT_PLUGIN_ROOT`, `CLAUDE_PLUGIN_ROOT`, `COPILOT_PLUGIN_DATA` (a writable per-plugin
+  data folder under `~/.copilot/plugin-data/`), `COPILOT_HOOK_DIR` (the plugin folder) and `COPILOT_PROJECT_DIR`
+  (the project). The hooks resolve the project from `COPILOT_PROJECT_DIR`, so `.ai/state.json` is found and the
+  same denies fire as with the repository hook file.
+- Plugin agents are namespaced: `--agent=shipyard:shipyard-coordinator`, and subagent payloads name
+  `shipyard:shipyard-<short>`. `role_from_name` strips the plugin prefix as well as the agent prefix.
+- Plugin hooks load even when the project folder is not trusted; the repository hook file does not. A project that
+  has both the plugin and a project install runs every hook twice.
+
 Still unverified: whether `agentName` in subagent payloads is the frontmatter name, VS Code and JetBrains hook
-behaviour, whether `matcher` is honoured inside agent frontmatter, and everything about dynamic workflows (the
-folder must be in `trustedFolders` first; see docs/workflows.md).
+behaviour, whether `matcher` is honoured inside agent frontmatter, and the `powershell` form of the plugin hooks
+(the `${PLUGIN_ROOT}` expansion was observed for `bash` only).

@@ -29,8 +29,10 @@ The primary mode. Requirements: Copilot CLI with dynamic workflows (public previ
 
 ```bash
 cd <your project>
-python3 shipyard/scripts/check.py --env          # what this client enforces
+python3 shipyard/scripts/check.py --env          # what this client enforces (project install)
 copilot --experimental --agent=shipyard-coordinator
+# plugin install (copilot plugin install vineethvarghese/shipyard-copilot): the ids carry the plugin name
+copilot --experimental --agent=shipyard:shipyard-coordinator
 ```
 
 The coordinator owns the chat. It asks the P0 question, writes `state.json`, creates the branches, then runs

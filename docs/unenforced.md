@@ -9,7 +9,9 @@ a mode with something that matters. Points marked (unverified) have not been con
 1. **`effort` per mode and `maxTurns` per agent.** No `.agent.md` keys for them. The CLI does take `--reasoning-effort` per launch (verified on 1.0.107), so the coordinator session's effort is settable; per-subagent effort is not. Replaced by `model` per agent,
    workflow `limits`, and the `Budget:` line in every brief.
 2. **Plugin evals** (the original plugin's eval suites). Replaced by conformance runs on `examples/sample-project` (planned).
-3. **Marketplace distribution.** Replaced by this template repository.
+3. **Marketplace listing.** Not dropped any more: `copilot plugin install vineethvarghese/shipyard-copilot` installs the CLI
+   plugin straight from the repository, and `install.sh` / `install.py` give a checksummed project install with
+   `remove`. Only a marketplace entry is missing.
 4. **The single-entry-point guarantee.** `Caller: shipyard-coordinator` stays as text in every specialist body;
    it is enforced only by the CLI `brief-check` hook on `task` calls, by `user-invocable: false` (hidden from
    pickers) and by `disable-model-invocation: true` (only an agent that lists them in `agents:` can call them).

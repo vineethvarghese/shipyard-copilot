@@ -17,7 +17,7 @@
 // This file reads the registry and the contracts from disk when the args omit them (Node `fs`, read-only, under
 // the repository root). It never writes, never uses the network, the clock or randomness.
 
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -205,12 +205,34 @@ export function brief(b) {
 
 /** `shipyard:code-reviewer` or `shipyard-code-reviewer` → `code-reviewer`. */
 export function shortAgentName(agent) {
-  return String(agent || '').replace(/^shipyard[:-]/, '');
+  return String(agent || '').replace(/^(shipyard[:-])+/, '');  // also `shipyard:shipyard-x` from a plugin install
 }
 
 /** The Copilot custom-agent name for a registry agent: `shipyard-<short>`. */
 export function copilotAgentName(agent) {
   return `shipyard-${shortAgentName(agent)}`;
+}
+
+/**
+ * The id prefix a plugin install adds to every agent (`shipyard:shipyard-<short>`; verified on CLI 1.0.107).
+ * Plugin mode means: a `plugin.json` sits at this library's repository root and that root is not the project
+ * (`cwd`). A project install never carries `plugin.json` (install.py leaves it out), and this repository used as
+ * its own project has cwd === REPO_ROOT; both get ''. No environment is read, so a run stays reproducible.
+ */
+export function pluginAgentPrefix(cwd = process.cwd()) {
+  const manifest = join(REPO_ROOT, 'plugin.json');
+  if (!existsSync(manifest) || resolve(cwd) === REPO_ROOT) return '';
+  try {
+    const name = JSON.parse(readFileSync(manifest, 'utf8')).name;
+    return name ? `${name}:` : '';
+  } catch (e) {
+    return '';
+  }
+}
+
+/** The id to hand the runtime: the custom-agent name, prefixed when Shipyard runs as a plugin. */
+export function agentId(agent, prefix = pluginAgentPrefix()) {
+  return `${prefix}${copilotAgentName(agent)}`;
 }
 
 export function agentSelectionOf(args) {
@@ -220,16 +242,18 @@ export function agentSelectionOf(args) {
 }
 
 /** The preamble that names the agent when the runtime cannot be told which custom agent to run. */
-export function agentPreamble(agentName) {
-  return `Act as \`${agentName}\`: read .github/agents/${agentName}.agent.md first and follow it as your identity, tools and rules.\n\n`;
+export function agentPreamble(agentName, agentsDir = join(REPO_ROOT, '.github', 'agents')) {
+  const file = join(agentsDir, `${copilotAgentName(agentName)}.agent.md`);
+  return `Act as \`${agentName}\`: read ${file} first and follow it as your identity, tools and rules.\n\n`;
 }
 
 /**
  * The extra `ctx.agent` options that select the agent and its compute class.
- * selection "agent": { agent: "shipyard-<short>", model, reasoningEffort } (unverified runtime options).
+ * selection "agent": { agent: "shipyard-<short>" (or "shipyard:shipyard-<short>" under a plugin install), model,
+ * reasoningEffort } (unverified runtime options).
  * selection "prompt": {} — the agent is named in the prompt by `agentPreamble` instead.
  */
-export function agentOptions(registry, roleName, mode, selection = 'agent') {
+export function agentOptions(registry, roleName, mode, selection = 'agent', prefix = pluginAgentPrefix()) {
   const r = registry.roles[roleName];
   if (!r) throw new Error(`role '${roleName}' is not in the registry`);
   const cls = (r.modes || {})[mode];
@@ -237,7 +261,7 @@ export function agentOptions(registry, roleName, mode, selection = 'agent') {
   const c = registry.computeClasses[cls];
   if (!c) throw new Error(`compute class '${cls}' (role '${roleName}', mode '${mode}') is not defined`);
   if (selection === 'prompt') return {};
-  const out = { agent: copilotAgentName(r.agent) };
+  const out = { agent: agentId(r.agent, prefix) };
   if (c.model) out.model = c.model;
   if (c.effort) out.reasoningEffort = c.effort;
   return out;
@@ -499,7 +523,7 @@ export function makeToolkit(ctx, name) {
     const sch = schema(contractRef || contractRefFor(roleName, mode));
     const extra = agentOptions(REG, roleName, mode, selection);
     const text = brief(Object.assign({}, briefObj, { mode }));
-    const prompt = selection === 'prompt' ? agentPreamble(copilotAgentName(r.agent)) + text : text;
+    const prompt = selection === 'prompt' ? agentPreamble(agentId(r.agent)) + text : text;
     const seq = ++callSeq;
     for (let attempt = 0; attempt <= RETRIES; attempt++) {
       const tag = `${label} #${seq}${attempt ? ` (retry ${attempt})` : ''}`;

@@ -137,7 +137,7 @@ class GenAgents(unittest.TestCase):
         self.gen()
         for short in SHORTS:
             head, body, text = self.agent(short)
-            self.assertIsNone(re.search(r"shipyard:(?!plan-approved)", text), short)
+            self.assertIsNone(re.search(r"shipyard:(?!plan-approved|shipyard-)", text), short)  # label and plugin ids are fine
             self.assertNotIn("CLAUDE", text, short)
             self.assertNotIn("preloaded", body, short)
             self.assertLessEqual(len(body), gen_agents.BODY_LIMIT, short)

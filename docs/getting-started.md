@@ -16,9 +16,50 @@ This page takes you from an empty `.github/` to your first merged slice. Pick a 
 
 ## Install
 
-Copy two folders into your repository: `.github/` (agents, skills, prompts, instructions, hooks, extensions,
-workflows, templates, rulesets) and `shipyard/` (registry, contracts, scripts, hooks and tests), plus `AGENTS.md`.
+There are two ways in. Pick by the clients you use:
+
+| | Plugin install | Project install |
+|---|---|---|
+| Command | `copilot plugin install vineethvarghese/shipyard-copilot` | `sh install.sh init` (see below) |
+| Reaches | Copilot CLI only, every project you open | Every client: CLI, coding agent, VS Code, JetBrains |
+| Agents, skills, hooks, workflows | Yes, from `~/.copilot/installed-plugins/` | Yes, from `.github/` in the project |
+| Prompt files, Actions, rulesets, templates | No | Yes |
+| Agent ids | `shipyard:shipyard-coordinator` (the plugin name is the prefix) | `shipyard-coordinator` |
+| Updates | `copilot plugin update shipyard` | `sh install.sh update` |
+| Uninstall | `copilot plugin uninstall shipyard` | `python3 shipyard/scripts/install.py remove` |
+
+Do not combine them in one project: Copilot runs the hooks of both, so every deny would fire twice.
+
+### Plugin install (CLI)
+
+```bash
+copilot plugin install vineethvarghese/shipyard-copilot   # once per machine
+cd <your project>
+copilot --experimental --agent=shipyard:shipyard-coordinator
+```
+
+The plugin carries the thirteen agents, the skills, the eight hooks and the three dynamic workflows. Hooks run from
+the plugin folder with your project as `COPILOT_PROJECT_DIR`; the workflows register without the project being a
+trusted folder (verified on CLI 1.0.107). Your project only ever gets a `.ai/` folder. Disable without removing:
+`copilot plugin disable shipyard`. Remove: `copilot plugin uninstall shipyard`.
+
+### Project install (every client)
+
+```bash
+cd <your project>
+curl -fsSL https://raw.githubusercontent.com/vineethvarghese/shipyard-copilot/main/install.sh -o shipyard-install.sh
+sh shipyard-install.sh init            # add --skip-github to leave out Actions, rulesets, templates, CODEOWNERS
+rm shipyard-install.sh
+```
+
+Or, from a clone of this repository: `python3 <clone>/shipyard/scripts/install.py init --target <your project>`.
 Or create your repository from this one as a template (`gh repo create --template`).
+
+The installer copies `AGENTS.md`, `.github/` (agents, skills, prompts, instructions, the hook file, extensions,
+the Shipyard Actions, rulesets, issue form, pull request template, `CODEOWNERS`) and `shipyard/` (registry,
+contracts, scripts). It records every file with its checksum in `shipyard/INSTALL.json`, refuses to overwrite a
+file that already exists with different content (use `--skip '<glob>'` or `--force`), and never touches `.ai/`.
+`--dry-run` shows the plan.
 
 Then:
 
@@ -35,6 +76,18 @@ Then:
    ```
 
    It prints the client it can see, the guardrails that will be active, and the ones that will not.
+
+### Update and uninstall (project install)
+
+```bash
+python3 shipyard/scripts/install.py status     # unchanged / modified / missing, per installed file
+sh shipyard-install.sh update                  # replaces unchanged files, keeps the ones you edited, drops removed ones
+python3 shipyard/scripts/install.py remove     # deletes what was installed and still matches; keeps your edits
+```
+
+`remove` runs from the copy the install left behind, so it needs no download. It deletes only files whose checksum
+still matches `INSTALL.json`, lists the ones you changed and leaves them (add `--force` to delete those too), prunes
+the folders it emptied, and never touches `.ai/`. Your notes branch and `.ai/` folder survive an uninstall.
 
 ## Launch
 

@@ -339,8 +339,9 @@ def check_kept_body(short, body):
         for marker in COORDINATOR_MARKERS:
             if marker not in body:
                 problems.append("coordinator: body lacks the marker %r" % marker)
-    # `shipyard:plan-approved` is the cloud-mode label, not an agent name.
-    if re.search(r"shipyard:(?!plan-approved)[a-z]|CLAUDE|\bpreloaded\b", body):
+    # `shipyard:plan-approved` is the cloud-mode label and `shipyard:shipyard-<short>` a plugin-install agent id,
+    # not upstream agent names.
+    if re.search(r"shipyard:(?!plan-approved|shipyard-)[a-z]|CLAUDE|\bpreloaded\b", body):
         problems.append("%s: body carries unadapted wording (shipyard: / CLAUDE / preloaded)" % short)
     return problems
 

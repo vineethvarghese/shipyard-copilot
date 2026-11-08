@@ -34,6 +34,7 @@ python3 -m unittest discover -s shipyard/tests/scripts      # validator, state h
 node --test shipyard/tests/extensions/                     # the dynamic workflows with a fake ctx
 python3 shipyard/scripts/check.py                           # JSON, contracts, registry, banned words
 python3 shipyard/scripts/gen_agents.py --check              # generated agent files are up to date
+python3 shipyard/scripts/gen_plugin.py --check              # plugin.json and hooks.json match the repository hook file
 python3 shipyard/scripts/check_links.py                     # every relative Markdown link resolves
 ```
 

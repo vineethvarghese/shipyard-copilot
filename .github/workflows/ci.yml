@@ -30,6 +30,7 @@ jobs:
           python3 shipyard/scripts/check.py
           python3 shipyard/scripts/check_links.py
           python3 shipyard/scripts/gen_agents.py --check
+          python3 shipyard/scripts/gen_plugin.py --check
       - name: Hook tests
         run: python3 -m unittest discover -s shipyard/tests/hooks
       - name: Script tests

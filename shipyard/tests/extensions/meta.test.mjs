@@ -4,7 +4,8 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { loadMeta, loadWorkflow, workflowSource, loadRegistry, loadContracts, EXTENSIONS_DIR, validate } from './harness.mjs';
 import {
-  brief, schemaFor, agentOptions, agentPreamble, copilotAgentName, shortAgentName, routePlan, routeSlice,
+  brief, schemaFor, agentOptions, agentPreamble, copilotAgentName, shortAgentName, pluginAgentPrefix, agentId, REPO_ROOT,
+  routePlan, routeSlice,
   dedupePlanFindings, dedupeSliceFindings, defineWorkflow, loadInputs, attach,
 } from '../../../.github/extensions/shipyard-lib/index.mjs';
 
@@ -97,7 +98,16 @@ test('agent names: both registry prefixes map to shipyard-<short>', () => {
   assert.equal(shortAgentName('shipyard-code-reviewer'), 'code-reviewer');
   assert.equal(copilotAgentName('shipyard:goldfish'), 'shipyard-goldfish');
   assert.equal(copilotAgentName('shipyard-goldfish'), 'shipyard-goldfish');
-  assert.match(agentPreamble('shipyard-goldfish'), /^Act as `shipyard-goldfish`: read \.github\/agents\/shipyard-goldfish\.agent\.md/);
+  assert.match(agentPreamble('shipyard-goldfish'), /^Act as `shipyard-goldfish`: read .*\.github[\\/]agents[\\/]shipyard-goldfish\.agent\.md first/);
+  assert.match(agentPreamble('shipyard:shipyard-goldfish', '/plug/.github/agents'), /^Act as `shipyard:shipyard-goldfish`: read \/plug\/\.github\/agents\/shipyard-goldfish\.agent\.md/);
+});
+
+test('pluginAgentPrefix(): "" when this repository is the project, "shipyard:" when the lib runs from a plugin folder for another project', () => {
+  assert.equal(pluginAgentPrefix(REPO_ROOT), '');
+  assert.equal(pluginAgentPrefix('/some/other/project'), 'shipyard:');
+  assert.equal(shortAgentName('shipyard:shipyard-goldfish'), 'goldfish');
+  assert.equal(agentId('shipyard:goldfish', ''), 'shipyard-goldfish');
+  assert.equal(agentId('goldfish', 'shipyard:'), 'shipyard:shipyard-goldfish');
 });
 
 test('agentOptions(): "agent" selection passes agent, model and reasoningEffort; "prompt" passes nothing', () => {

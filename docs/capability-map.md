@@ -28,6 +28,6 @@ point; confirm it against `copilot --help` and your client before relying on it.
 | **Compute classes** COORDINATOR/DEEP/STANDARD | `model` per agent file from the registry (ids set by you); effort global (CLI `effortLevel`) or SDK-only `reasoningEffort` (unverified for the CLI) | degraded | VS Code's cost-tier ceiling gives "delegate never above coordinator" for free. |
 | **Parallelism** (implementer ∥ verifier, concurrent reviewers) | `ctx.parallel` in workflows; parallel subagents where the client supports them | degraded outside workflows | Prompt files allow sequential runs; acceptable. |
 | **Evals** (the original plugin's eval suites) | None | manual | Conformance runs of the sample project with `copilot workflow run … --result-file` (planned). |
-| **Plugin install / marketplace** | A template repository copied into `.github/` plus `shipyard/` | degraded | `gh repo create --template`, or copy the two folders. |
+| **Plugin install / marketplace** | `copilot plugin install vineethvarghese/shipyard-copilot` (CLI: agents, skills, hooks, workflows; verified on 1.0.107) and `install.sh` / `install.py init|update|status|remove` for a checksummed project install that every client reads | supported | No marketplace listing yet; `copilot plugin uninstall shipyard` and `install.py remove` are the two uninstalls. |
 
 Source: section A of [DESIGN.md](DESIGN.md), kept in step with the files in this repository.

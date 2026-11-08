@@ -169,7 +169,19 @@ Documented only by a third party (treated as likely, not certain): the module sh
 mismatch, memoisation by label, the honoured schema subset, `ctx.step`, `ctx.parallel`, `ctx.pipeline`, `ctx.pause`,
 `ctx.phase`, `ctx.log`, `ctx.signal`.
 
-Not documented anywhere we found: whether `ctx.agent` accepts `agent` (a custom agent name), `model` or
-`reasoningEffort`; what `ctx.pause` resolves to on resume; whether an extension may import Node builtins such as
-`fs`; whether unknown `meta` keys are rejected. The lib isolates each of these behind one switch or one function, and
+Verified on CLI 1.0.107 (2026-11-09), by mounting this repository with `copilot --plugin-dir`: the three workflows
+register from `.github/extensions/` when `plugin.json` names that folder under `extensions`; `copilot --experimental
+workflow run shipyard-discover --args '{}'` reaches the workflow and fails on its argument check ("Invalid
+arguments"); `workflow run shipyard-plan --args '{}'` ran to the end and printed the workflow's own fail-closed
+result (`{"status":"BLOCKED", "reason":"plan critique: no valid result after retry: …"}`), so the module shape,
+`defineWorkflow`, `meta.argsSchema`, `ctx.agent`, `ctx.step`, the retry loop and the `node:fs` import in the lib
+are all accepted by the runtime; and a plugin's workflows load without the project being a trusted folder, unlike
+`.github/extensions/` in the project itself. Whether that empty-args run's subagents failed because `ctx.agent`
+ignores the `agent` option or simply because they had nothing to critique is not yet known; run a real discover
+first and compare `agentSelection: "agent"` with `"prompt"`. Plugin agent ids carry the plugin name (`shipyard:shipyard-discovery`);
+the lib adds the prefix through `pluginAgentPrefix()` when it runs from a plugin.
+
+Not documented anywhere we found, and not yet exercised end to end: whether `ctx.agent` accepts `agent` (a custom
+agent name), `model` or `reasoningEffort`; what `ctx.pause` resolves to on resume; whether unknown `meta` keys are
+rejected. The lib isolates each of these behind one switch or one function, and
 `docs/decisions/ADR-0002-dynamic-workflows.md` lists how to confirm them with `copilot --help` and a two-line spike.

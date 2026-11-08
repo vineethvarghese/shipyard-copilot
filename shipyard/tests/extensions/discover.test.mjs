@@ -205,7 +205,7 @@ test('agentSelection "prompt" names the agent in a preamble and sends only label
   const run = await runDiscover({ breadth: 0, agentSelection: 'prompt' });
   assert.equal(run.result.status, 'NEEDS_HUMAN');
   const scan = run.calls.find((c) => c.key === 'discovery|SCAN');
-  assert.match(scan.prompt, /^Act as `shipyard-discovery`: read \.github\/agents\/shipyard-discovery\.agent\.md first/);
+  assert.match(scan.prompt, /^Act as `shipyard-discovery`: read .*\.github[\\/]agents[\\/]shipyard-discovery\.agent\.md first/);
   assert.match(scan.prompt, /\n\nCaller: shipyard:coordinator\nMode: SCAN\n/);
   assert.deepEqual(Object.keys(scan.opts).sort(), ['label', 'phase', 'schema']);
   await assert.rejects(runWorkflow('discover', { request: 'x', breadth: 0, agentSelection: 'magic' }, {}, {}), /agentSelection must be one of/);

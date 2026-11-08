@@ -1,0 +1,20 @@
+{
+  "name": "shipyard",
+  "version": "0.1.0",
+  "description": "Shipyard for GitHub Copilot: a coordinator and twelve specialists that ship a large change as small, independently mergeable slices, with a grill of questions first, a test plan before code, routed review, human gates, and hooks that enforce the rules.",
+  "repository": "https://github.com/vineethvarghese/shipyard-copilot",
+  "license": "MIT",
+  "keywords": [
+    "workflow",
+    "planning",
+    "slices",
+    "tdd",
+    "review",
+    "hooks",
+    "agents"
+  ],
+  "agents": ".github/agents",
+  "skills": ".github/skills",
+  "extensions": ".github/extensions",
+  "hooks": "hooks.json"
+}

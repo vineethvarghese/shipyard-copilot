@@ -227,15 +227,19 @@ def claude_tool_input(claude_name, args):
 
 
 def role_from_name(name):
-    """`shipyard-code-reviewer`, `shipyard:code-reviewer`, `shipyard_code_reviewer` or `code-reviewer` ->
-    `code-reviewer`. None when the name is not a Shipyard role."""
+    """`shipyard-code-reviewer`, `shipyard:code-reviewer`, `shipyard:shipyard-code-reviewer` (a plugin install),
+    `shipyard_code_reviewer` or `code-reviewer` -> `code-reviewer`. None when the name is not a Shipyard role."""
     if not isinstance(name, str) or not name.strip():
         return None
     n = name.strip().lower().replace("_", "-")
-    for prefix in ("shipyard:", "shipyard-", "shipyard."):
-        if n.startswith(prefix):
-            n = n[len(prefix):]
-            break
+    # A plugin install namespaces agent ids (`shipyard:shipyard-code-reviewer`), so strip every leading prefix.
+    stripped = True
+    while stripped:
+        stripped = False
+        for prefix in ("shipyard:", "shipyard-", "shipyard."):
+            if n.startswith(prefix) and n != prefix:
+                n = n[len(prefix):]
+                stripped = True
     return n if n in ROLES else None
 
 
