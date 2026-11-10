@@ -20,6 +20,7 @@ export const meta = {
       registry: { type: 'object', description: 'Parsed shipyard/registry/roles.json; read from disk when absent.' },
       contracts: { type: 'object', description: 'Contracts keyed by file stem; read from shipyard/contracts/ when absent.' },
       agentSelection: { type: 'string', enum: ['agent', 'prompt'], description: 'How the custom agent is selected per call (see shipyard-lib).' },
+      models: { type: 'object', description: 'Registry model alias -> Copilot model id (default: shipyard-lib MODEL_IDS; "" omits the model option).' },
       shipyardDir: { type: 'string', description: 'Folder holding registry/ and contracts/ (default <repo>/shipyard).' },
     },
     required: ['request'],

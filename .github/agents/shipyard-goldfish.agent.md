@@ -8,7 +8,6 @@ description: >
 tools: [read, search, web]
 # model: DEEP class in shipyard/registry/roles.json -> computeClasses; set MODEL_MAP in shipyard/scripts/gen_agents.py or pass --model DEEP=<id>
 user-invocable: false
-disable-model-invocation: true
 agents: []
 hooks:
   preToolUse:

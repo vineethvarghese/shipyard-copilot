@@ -15,8 +15,14 @@ What the generator does with each shell:
 * `tools`       -> Claude tool names mapped to Copilot tool aliases (TOOL_MAP).
 * `model`       -> from the registry compute class whose model and effort match the shell's frontmatter, through
                    MODEL_MAP. The default map holds no model ids: the key is then omitted and a comment names the
-                   class. Set the ids in MODEL_MAP or pass `--model DEEP=<id>`.
-* specialists   -> `user-invocable: false`, `disable-model-invocation: true`, `agents: []`.
+                   class. Set the ids in MODEL_MAP or pass `--model DEEP=<id>` (Copilot CLI 1.0.108 accepted
+                   `claude-opus-5.5` and `claude-sonnet-5.5`; the bare registry aliases `opus`/`sonnet` are not
+                   model ids there).
+* specialists   -> `user-invocable: false`, `agents: []`. Never `disable-model-invocation: true`: Copilot's
+                   model-invocation gate also rejects a workflow's `ctx.agent(..., {agent})` launch of such an
+                   agent (`custom_agent_model_invocation_disabled`, seen on CLI 1.0.108), which would leave the
+                   three dynamic workflows with no specialists. The single entry point is kept by the caller check
+                   in every specialist body and by the `brief-check` hook.
 * coordinator   -> `agents:` = the twelve specialists, `handoffs` for the P4, P8 and merge gates, `send: false`.
 * `hooks`       -> CLI agent-scoped hooks per role (HOOKS), each passing `SHIPYARD_ROLE=<short>`.
 * body          -> the Shipyard body with the wording rules in BODY_RULES applied; `Step 0`, `Mode:` and the hook
@@ -271,7 +277,6 @@ def frontmatter(short, description, tools, cls, model_map, specialists):
             lines.append("    send: false")
     else:
         lines.append("user-invocable: false")
-        lines.append("disable-model-invocation: true")
         lines.append("agents: []")
     hooks = HOOKS.get(short, [])
     if hooks:

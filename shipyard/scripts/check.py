@@ -8,7 +8,8 @@ Repository hygiene (the template repository, default):
   * every *.json file parses;
   * every contract under shipyard/contracts has $id, title, x-contract-version and a sane schema shape;
   * .github/agents/*.agent.md: frontmatter name (= file stem) and description; every specialist has
-    `user-invocable: false` and no agent-spawning tool (agent, task, runSubagent); non-empty body;
+    `user-invocable: false`, not `disable-model-invocation: true` (it would also block the dynamic workflows'
+    `ctx.agent` launches) and no agent-spawning tool (agent, task, runSubagent); non-empty body;
   * every .github/skills/<name>/ has SKILL.md (name = folder, description) and CHANGELOG.md;
   * shipyard/registry/roles.json references existing agents (`shipyard-<short>`; the older `shipyard:<short>` is
     accepted), skills, contracts and compute classes, and every agent file is in the registry;
@@ -289,6 +290,9 @@ def check_agents(root, problems):
         if name not in coordinators:
             if fm.get("user-invocable") is not False:
                 problems.append("%s: specialist must set `user-invocable: false`" % where)
+            if fm.get("disable-model-invocation") is True:
+                problems.append("%s: specialist must not set `disable-model-invocation: true` (it blocks the "
+                                "workflows' ctx.agent launches too)" % where)
             spawn = sorted(t for t in _tools_of(fm) if re.sub(r"\(.*$", "", t) in SPAWN_TOOLS)
             if spawn:
                 problems.append("%s: specialist must not have an agent-spawning tool (%s)" % (where, ", ".join(spawn)))

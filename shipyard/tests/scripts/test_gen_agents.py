@@ -90,7 +90,8 @@ class GenAgents(unittest.TestCase):
             head, _, text = self.agent(short)
             self.assertEqual(head["name"], "shipyard-" + short)
             self.assertIs(head["user-invocable"], False, short)
-            self.assertIs(head["disable-model-invocation"], True, short)
+            # Copilot's model-invocation gate would also reject the workflows' ctx.agent launches.
+            self.assertNotIn("disable-model-invocation", head, short)
             self.assertIn("\nagents: []\n", text, short)
             self.assertNotIn("handoffs:", text, short)
 

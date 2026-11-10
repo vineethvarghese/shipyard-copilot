@@ -111,6 +111,11 @@ class Agents(CheckTestCase):
         write(self.root, self.AGENT, self.read(self.AGENT).replace("user-invocable: false", "user-invocable: true"))
         self.assertProblem("specialist must set `user-invocable: false`")
 
+    def test_specialist_must_not_disable_model_invocation(self):
+        write(self.root, self.AGENT, self.read(self.AGENT).replace("user-invocable: false\n",
+                                                                   "user-invocable: false\ndisable-model-invocation: true\n"))
+        self.assertProblem("shipyard-alpha.agent.md: specialist must not set `disable-model-invocation: true`")
+
     def test_specialist_must_not_spawn_agents(self):
         for tools in ("tools: [read, task]", "tools: read, agent", "tools: [read, runSubagent]", "tools: [Agent(x)]"):
             with self.subTest(tools=tools):

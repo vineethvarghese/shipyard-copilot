@@ -8,9 +8,14 @@
 //     once on a mismatch and resolves to null on failure. Documented by a third party; label and schema only.
 //   - Identical calls are memoised by label, so every label here is unique within a run (a call counter).
 //   - `ctx.step(key, fn)` journals fn's result under key and replays it on resume. Keys are unique within a run.
-//   - Whether `ctx.agent` accepts `agent` (a custom agent name), `model` or `reasoningEffort` is unverified.
+//   - `ctx.agent` accepts `agent` (a custom agent id, `shipyard:shipyard-<short>` under a plugin install) and
+//     `model`; verified on CLI 1.0.108. An agent whose file sets `disable-model-invocation: true` is rejected by
+//     the model-invocation gate, so the generator never sets it. `model` must be a Copilot model id
+//     (`claude-opus-5.5`, not the registry alias `opus`); an unknown id is logged and the default model is used.
+//     `reasoningEffort` is passed and not rejected; whether it is honoured is unverified.
 //     `agentOptions()` is the one switch: `args.agentSelection` "agent" (default) passes them; "prompt" passes
-//     only label and schema and names the agent in a preamble line of the prompt instead.
+//     only label and schema and names the agent in a preamble line of the prompt instead. `args.models` maps a
+//     registry model alias to a Copilot id (MODEL_IDS by default; "" omits `model`).
 //   - The SDK entry point `@github/copilot-sdk/extension` (defineWorkflow, joinSession) is unverified; `attach()`
 //     imports it dynamically and does nothing when it is absent, so the workflows load under plain Node for tests.
 //
@@ -247,13 +252,27 @@ export function agentPreamble(agentName, agentsDir = join(REPO_ROOT, '.github', 
   return `Act as \`${agentName}\`: read ${file} first and follow it as your identity, tools and rules.\n\n`;
 }
 
+/** Registry model alias -> Copilot model id. Verified with `copilot --model <id>` on CLI 1.0.108. */
+export const MODEL_IDS = Object.freeze({ opus: 'claude-opus-5.5', sonnet: 'claude-sonnet-5.5' });
+
+/** `args.models` over MODEL_IDS: an object of alias -> id; "" (or null) drops `model` for that alias. */
+export function modelIdsOf(args) {
+  const m = args && args.models;
+  if (m == null) return MODEL_IDS;
+  if (typeof m !== 'object' || Array.isArray(m)) throw new Error('args.models must be an object of model alias -> Copilot model id');
+  for (const [k, v] of Object.entries(m)) {
+    if (v != null && typeof v !== 'string') throw new Error(`args.models.${k} must be a string model id or "" to omit`);
+  }
+  return Object.assign({}, MODEL_IDS, m);
+}
+
 /**
  * The extra `ctx.agent` options that select the agent and its compute class.
- * selection "agent": { agent: "shipyard-<short>" (or "shipyard:shipyard-<short>" under a plugin install), model,
- * reasoningEffort } (unverified runtime options).
+ * selection "agent": { agent: "shipyard-<short>" (or "shipyard:shipyard-<short>" under a plugin install), model
+ * (the compute class's alias through `models`, omitted when unmapped), reasoningEffort }.
  * selection "prompt": {} — the agent is named in the prompt by `agentPreamble` instead.
  */
-export function agentOptions(registry, roleName, mode, selection = 'agent', prefix = pluginAgentPrefix()) {
+export function agentOptions(registry, roleName, mode, selection = 'agent', prefix = pluginAgentPrefix(), models = MODEL_IDS) {
   const r = registry.roles[roleName];
   if (!r) throw new Error(`role '${roleName}' is not in the registry`);
   const cls = (r.modes || {})[mode];
@@ -262,7 +281,8 @@ export function agentOptions(registry, roleName, mode, selection = 'agent', pref
   if (!c) throw new Error(`compute class '${cls}' (role '${roleName}', mode '${mode}') is not defined`);
   if (selection === 'prompt') return {};
   const out = { agent: agentId(r.agent, prefix) };
-  if (c.model) out.model = c.model;
+  const id = c.model ? (Object.prototype.hasOwnProperty.call(models, c.model) ? models[c.model] : c.model) : '';
+  if (id) out.model = id;
   if (c.effort) out.reasoningEffort = c.effort;
   return out;
 }
@@ -453,6 +473,8 @@ export function makeToolkit(ctx, name) {
   const { registry: REG, contracts: CONTRACTS } = loadInputs(A, name);
   checkWorkflowContract(REG, CONTRACTS, name);
   const selection = agentSelectionOf(A);
+  const MODELS = modelIdsOf(A);
+  const PREFIX = pluginAgentPrefix();
   const LIMITS = REG.limits || {};
   const RETRIES = Number.isInteger(LIMITS.reviewerRetries) ? LIMITS.reviewerRetries : 1;
   const FIX_SCOPE = fixScopeOf(REG);
@@ -521,7 +543,7 @@ export function makeToolkit(ctx, name) {
     const r = role(roleName);
     compute(roleName, mode);
     const sch = schema(contractRef || contractRefFor(roleName, mode));
-    const extra = agentOptions(REG, roleName, mode, selection);
+    const extra = agentOptions(REG, roleName, mode, selection, PREFIX, MODELS);
     const text = brief(Object.assign({}, briefObj, { mode }));
     const prompt = selection === 'prompt' ? agentPreamble(agentId(r.agent)) + text : text;
     const seq = ++callSeq;

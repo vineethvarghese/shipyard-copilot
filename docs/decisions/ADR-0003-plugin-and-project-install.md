@@ -53,5 +53,7 @@ Probed on CLI 1.0.107 with `copilot --plugin-dir`:
   which installed files were edited locally.
 - The upstream wording check in `gen_agents.py` accepts `shipyard:shipyard-<short>` so the coordinator can name
   plugin ids.
-- Open: the `powershell` form of the plugin hooks, and `ctx.agent` with a namespaced `agent` option, are not yet
-  observed. `docs/workflows.md` and `docs/hooks.md` list what was verified and what was not.
+- `ctx.agent` with the namespaced `agent` option works (CLI 1.0.108, 2026-11-10), once the specialists stopped
+  setting `disable-model-invocation: true`; that flag hides an agent from workflows as well as from the subagent
+  tool. Open: the `powershell` form of the plugin hooks. `docs/workflows.md` and `docs/hooks.md` list what was
+  verified and what was not.

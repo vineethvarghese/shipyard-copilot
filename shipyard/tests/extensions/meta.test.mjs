@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { loadMeta, loadWorkflow, workflowSource, loadRegistry, loadContracts, EXTENSIONS_DIR, validate } from './harness.mjs';
 import {
   brief, schemaFor, agentOptions, agentPreamble, copilotAgentName, shortAgentName, pluginAgentPrefix, agentId, REPO_ROOT,
+  MODEL_IDS, modelIdsOf,
   routePlan, routeSlice,
   dedupePlanFindings, dedupeSliceFindings, defineWorkflow, loadInputs, attach,
 } from '../../../.github/extensions/shipyard-lib/index.mjs';
@@ -110,13 +111,26 @@ test('pluginAgentPrefix(): "" when this repository is the project, "shipyard:" w
   assert.equal(agentId('goldfish', 'shipyard:'), 'shipyard:shipyard-goldfish');
 });
 
-test('agentOptions(): "agent" selection passes agent, model and reasoningEffort; "prompt" passes nothing', () => {
+test('agentOptions(): "agent" selection passes agent, the mapped model id and reasoningEffort; "prompt" passes nothing', () => {
   const reg = loadRegistry();
-  assert.deepEqual(agentOptions(reg, 'verifier', 'VERIFY', 'agent'), { agent: 'shipyard-verifier', model: 'sonnet', reasoningEffort: 'medium' });
-  assert.deepEqual(agentOptions(reg, 'architect', 'DRAFT'), { agent: 'shipyard-architect', model: 'opus', reasoningEffort: 'high' });
+  assert.deepEqual(agentOptions(reg, 'verifier', 'VERIFY', 'agent'), { agent: 'shipyard-verifier', model: 'claude-sonnet-5.5', reasoningEffort: 'medium' });
+  assert.deepEqual(agentOptions(reg, 'architect', 'DRAFT'), { agent: 'shipyard-architect', model: 'claude-opus-5.5', reasoningEffort: 'high' });
   assert.deepEqual(agentOptions(reg, 'architect', 'DRAFT', 'prompt'), {});
+  assert.deepEqual(agentOptions(reg, 'architect', 'DRAFT', 'agent', 'shipyard:', { opus: 'my-deep-model' }),
+    { agent: 'shipyard:shipyard-architect', model: 'my-deep-model', reasoningEffort: 'high' });
+  assert.deepEqual(agentOptions(reg, 'architect', 'DRAFT', 'agent', '', { opus: '' }), { agent: 'shipyard-architect', reasoningEffort: 'high' });
+  assert.deepEqual(agentOptions(reg, 'architect', 'DRAFT', 'agent', '', {}), { agent: 'shipyard-architect', model: 'opus', reasoningEffort: 'high' });
   assert.throws(() => agentOptions(reg, 'architect', 'NOPE'), /has no mode 'NOPE'/);
   assert.throws(() => agentOptions(reg, 'nobody', 'DRAFT'), /not in the registry/);
+});
+
+test('modelIdsOf(): MODEL_IDS by default, args.models layered over it, bad shapes rejected', () => {
+  assert.equal(modelIdsOf({}), MODEL_IDS);
+  assert.equal(modelIdsOf(undefined), MODEL_IDS);
+  assert.deepEqual(modelIdsOf({ models: { opus: 'x' } }), { opus: 'x', sonnet: MODEL_IDS.sonnet });
+  assert.deepEqual(modelIdsOf({ models: { sonnet: '' } }), { opus: MODEL_IDS.opus, sonnet: '' });
+  assert.throws(() => modelIdsOf({ models: ['x'] }), /args.models must be an object/);
+  assert.throws(() => modelIdsOf({ models: { opus: 5 } }), /args.models.opus must be a string/);
 });
 
 test('schemaFor(): strips metadata keys and checks the major version', () => {

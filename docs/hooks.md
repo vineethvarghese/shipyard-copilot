@@ -158,6 +158,9 @@ These points were observed on a real CLI session in this repository and are no l
   name.
 - `user-invocable: false` does not stop `copilot --agent=<specialist>` from loading the agent. The caller check in
   each specialist's body does the refusing, as designed.
+- `disable-model-invocation: true` hides an agent from the subagent tool and from a dynamic workflow's
+  `ctx.agent` alike (`custom_agent_model_invocation_disabled` in the CLI log, 1.0.108). The specialists must not
+  carry it; `check.py` fails when one does.
 - The CLI warns `unknown fields ignored: agents, handoffs` on the coordinator file. Those keys are read by VS Code
   only; the warning is harmless.
 - `--trust-folder` works only with `-p`, so `copilot workflow run` needs the folder in `trustedFolders`.

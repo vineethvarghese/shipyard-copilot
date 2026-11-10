@@ -194,9 +194,9 @@ test('discovery runs STANDARD for SCAN and DEEP for ELEPHANT and SYNTHESIZE, thr
   const scan = run.calls.find((c) => c.key === 'discovery|SCAN');
   const elephant = run.calls.find((c) => c.key === 'discovery|ELEPHANT');
   const synth = run.calls.find((c) => c.key === 'discovery|SYNTHESIZE');
-  assert.deepEqual([scan.opts.model, scan.opts.reasoningEffort], ['sonnet', 'medium']);
-  assert.deepEqual([elephant.opts.model, elephant.opts.reasoningEffort], ['opus', 'high']);
-  assert.deepEqual([synth.opts.model, synth.opts.reasoningEffort], ['opus', 'high']);
+  assert.deepEqual([scan.opts.model, scan.opts.reasoningEffort], ['claude-sonnet-5.5', 'medium']);
+  assert.deepEqual([elephant.opts.model, elephant.opts.reasoningEffort], ['claude-opus-5.5', 'high']);
+  assert.deepEqual([synth.opts.model, synth.opts.reasoningEffort], ['claude-opus-5.5', 'high']);
   assert.equal(scan.opts.agent, 'shipyard-discovery');
   assert.doesNotMatch(scan.prompt, /^Act as/);
 });

@@ -46,11 +46,11 @@ test('happy path → READY_FOR_HUMAN with evidence', async () => {
   assert.match(review.prompt, /^Diff: git diff feature\/demo\.\.\.feature\/demo-slice-01$/m);
   assert.match(review.prompt, /^Read: \.ai\/slices\/01\/SLICE\.md, \.ai\/slices\/01\/TEST_PLAN\.md, \.ai\/INVARIANTS\.md, \.ai\/ARCHITECTURE\.md$/m);
   assert.match(review.prompt, /^Write: \.ai\/slices\/01\/findings\/code-reviewer\.md$/m);
-  assert.equal(review.opts.model, 'opus');
+  assert.equal(review.opts.model, 'claude-opus-5.5');
   assert.equal(review.opts.reasoningEffort, 'high');
   assert.equal(review.opts.agent, 'shipyard-code-reviewer');
   const verify = run.calls.find((c) => c.key === 'verifier|VERIFY');
-  assert.equal(verify.opts.model, 'sonnet');
+  assert.equal(verify.opts.model, 'claude-sonnet-5.5');
   const tpReview = run.calls.find((c) => c.key === 'code-reviewer|TEST_PLAN');
   assert.match(tpReview.prompt, /^Write: \.ai\/slices\/01\/findings\/code-reviewer\.test-plan\.md$/m);
   assert.match(tpReview.prompt, /Status: DRAFT/);

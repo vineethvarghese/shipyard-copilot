@@ -8,7 +8,6 @@ description: >
 tools: [read, search, execute, edit]
 # model: STANDARD class in shipyard/registry/roles.json -> computeClasses; set MODEL_MAP in shipyard/scripts/gen_agents.py or pass --model STANDARD=<id>
 user-invocable: false
-disable-model-invocation: true
 agents: []
 hooks:
   preToolUse:

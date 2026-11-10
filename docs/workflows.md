@@ -53,7 +53,8 @@ explicitly (`registry`, `contracts`) still works and wins.
 
 Common to all three: `registry`, `contracts` (optional, see above), `shipyardDir` (folder holding `registry/` and
 `contracts/`, default `shipyard/` at the repository root), `agentSelection` (`"agent"`, the default, or
-`"prompt"`; see the ADR).
+`"prompt"`; see the ADR), `models` (registry model alias to Copilot model id, layered over the lib's `MODEL_IDS`:
+`{"opus": "claude-opus-5.5", "sonnet": "claude-sonnet-5.5"}`; `""` drops the `model` option for that alias).
 
 ### shipyard-discover
 
@@ -176,12 +177,22 @@ arguments"); `workflow run shipyard-plan --args '{}'` ran to the end and printed
 result (`{"status":"BLOCKED", "reason":"plan critique: no valid result after retry: …"}`), so the module shape,
 `defineWorkflow`, `meta.argsSchema`, `ctx.agent`, `ctx.step`, the retry loop and the `node:fs` import in the lib
 are all accepted by the runtime; and a plugin's workflows load without the project being a trusted folder, unlike
-`.github/extensions/` in the project itself. Whether that empty-args run's subagents failed because `ctx.agent`
-ignores the `agent` option or simply because they had nothing to critique is not yet known; run a real discover
-first and compare `agentSelection: "agent"` with `"prompt"`. Plugin agent ids carry the plugin name (`shipyard:shipyard-discovery`);
+`.github/extensions/` in the project itself. Plugin agent ids carry the plugin name (`shipyard:shipyard-discovery`);
 the lib adds the prefix through `pluginAgentPrefix()` when it runs from a plugin.
 
-Not documented anywhere we found, and not yet exercised end to end: whether `ctx.agent` accepts `agent` (a custom
-agent name), `model` or `reasoningEffort`; what `ctx.pause` resolves to on resume; whether unknown `meta` keys are
-rejected. The lib isolates each of these behind one switch or one function, and
+Verified on CLI 1.0.108 (2026-11-10) from the CLI log of that same empty-args plan run: `ctx.agent` honours the
+`agent` option, and it is the same gate as the model's subagent tool. Every specialist launch was first rejected
+with `Unknown agent_type: shipyard:shipyard-architect … Valid types are: explore, task, …, shipyard:shipyard-coordinator`,
+and the log named the cause: `custom agent task launch rejected by model-invocation gate
+{"reason":"custom_agent_model_invocation_disabled"}`. Removing `disable-model-invocation: true` from an agent
+file made it a valid type and its CRITIQUE call returned a result that passed the contract check, so the
+generator no longer sets that flag (`check.py` rejects it). The `model` option is also honoured, but it needs a
+Copilot model id: the registry alias `opus` was logged as `Model "opus" is not available` and the run fell back to
+the default model, so the lib maps aliases through `MODEL_IDS` (`claude-opus-5.5`, `claude-sonnet-5.5`, both
+accepted by `copilot --model`) and `args.models` overrides or blanks them. `reasoningEffort` is passed without
+complaint; whether it changes anything is not observable from the log.
+
+Not documented anywhere we found, and not yet exercised end to end: whether `reasoningEffort` is honoured; what
+`ctx.pause` resolves to on resume; whether unknown `meta` keys are rejected. The lib isolates each of these behind
+one switch or one function, and
 `docs/decisions/ADR-0002-dynamic-workflows.md` lists how to confirm them with `copilot --help` and a two-line spike.
