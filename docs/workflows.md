@@ -27,7 +27,7 @@ repository's ADR-0001 covers the three modes). See `docs/decisions/ADR-0002-dyna
 3. `run(ctx)` builds the shared toolkit (`makeToolkit`): it loads the registry and the contracts, checks the
    workflow's own result contract major, and wires `call()`, `step()`, `parallel()`, `enter()` and `log()` to `ctx`.
 4. Every specialist call goes through `call(role, mode, brief, label)`:
-   - the brief is built by `brief()` with the Shipyard header lines (`Caller: shipyard:coordinator`, `Mode:`,
+   - the brief is built by `brief()` with the Shipyard header lines (`Caller: shipyard-coordinator`, `Mode:`,
      `Slice:`, `Round:`, `Feature-branch:`, `Slice-branch:`, `Diff:`, `Read:`, `Write:`, `Budget:`);
    - the contract named in the registry for that role and mode is stripped of `$schema`, `$id`, `title`,
      `description` and `x-contract-version` and passed as `schema`;
@@ -189,10 +189,14 @@ file made it a valid type and its CRITIQUE call returned a result that passed th
 generator no longer sets that flag (`check.py` rejects it). The `model` option is also honoured, but it needs a
 Copilot model id: the registry alias `opus` was logged as `Model "opus" is not available` and the run fell back to
 the default model, so the lib maps aliases through `MODEL_IDS` (`claude-opus-5.5`, `claude-sonnet-5.5`, both
-accepted by `copilot --model`) and `args.models` overrides or blanks them. `reasoningEffort` is passed without
-complaint; whether it changes anything is not observable from the log.
+accepted by `copilot --model`) and `args.models` overrides or blanks them. `reasoningEffort` reaches the
+subagents too: the run's session state (`~/.copilot/session-state/<id>/events.jsonl`) records
+`"model":"claude-opus-5.5"` and `"reasoningEffort":"high"` on the DEEP calls and `"medium"` on the STANDARD call.
+The same run also showed that the brief header has to use the Copilot agent name: the specialists refused
+`Caller: shipyard:coordinator` (upstream's form) and accept only `Caller: shipyard-coordinator`, which the lib
+and the `brief-check` hook now produce and require.
 
-Not documented anywhere we found, and not yet exercised end to end: whether `reasoningEffort` is honoured; what
-`ctx.pause` resolves to on resume; whether unknown `meta` keys are rejected. The lib isolates each of these behind
+Not documented anywhere we found, and not yet exercised end to end: what `ctx.pause` resolves to on resume;
+whether unknown `meta` keys are rejected. The lib isolates each of these behind
 one switch or one function, and
 `docs/decisions/ADR-0002-dynamic-workflows.md` lists how to confirm them with `copilot --help` and a two-line spike.

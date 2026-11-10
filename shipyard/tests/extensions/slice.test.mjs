@@ -37,7 +37,7 @@ test('happy path → READY_FOR_HUMAN with evidence', async () => {
   assert.deepEqual(r.openFindings, []);
   // every brief carries the shared header; every call names its custom agent and compute class
   for (const c of run.calls) {
-    assert.match(c.prompt, /^Caller: shipyard:coordinator\nMode: [A-Z_]+\nSlice: 01\nRound: \d+\nFeature-branch: feature\/demo\nSlice-branch: feature\/demo-slice-01\n/);
+    assert.match(c.prompt, /^Caller: shipyard-coordinator\nMode: [A-Z_]+\nSlice: 01\nRound: \d+\nFeature-branch: feature\/demo\nSlice-branch: feature\/demo-slice-01\n/);
     assert.match(c.prompt, /^Budget: \d+ turns$/m);
     assert.ok(c.opts.model && c.opts.reasoningEffort && c.opts.agent.startsWith('shipyard-'));
     assert.ok(c.opts.label && c.opts.schema);

@@ -12,7 +12,8 @@
 //     `model`; verified on CLI 1.0.108. An agent whose file sets `disable-model-invocation: true` is rejected by
 //     the model-invocation gate, so the generator never sets it. `model` must be a Copilot model id
 //     (`claude-opus-5.5`, not the registry alias `opus`); an unknown id is logged and the default model is used.
-//     `reasoningEffort` is passed and not rejected; whether it is honoured is unverified.
+//     `reasoningEffort` reaches the subagent too: the session state of a plugin run records `model` and
+//     `reasoningEffort` per call as passed.
 //     `agentOptions()` is the one switch: `args.agentSelection` "agent" (default) passes them; "prompt" passes
 //     only label and schema and names the agent in a preamble line of the prompt instead. `args.models` maps a
 //     registry model alias to a Copilot id (MODEL_IDS by default; "" omits `model`).
@@ -196,7 +197,7 @@ export function checkWorkflowContract(registry, contracts, name) {
 
 /** The brief header every Shipyard specialist expects, then the free text. Same lines as Shipyard. */
 export function brief(b) {
-  const lines = ['Caller: shipyard:coordinator', `Mode: ${b.mode}`];
+  const lines = ['Caller: shipyard-coordinator', `Mode: ${b.mode}`];
   if (b.slice != null) lines.push(`Slice: ${b.slice}`);
   if (b.round != null) lines.push(`Round: ${b.round}`);
   if (b.featureBranch) lines.push(`Feature-branch: ${b.featureBranch}`);

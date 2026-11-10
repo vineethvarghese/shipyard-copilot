@@ -205,10 +205,10 @@ class AgentPayloads(HookTestCase):
     def test_task_without_caller_line_denied(self):
         res = self.run_copilot("task", {"agent": "shipyard-code-reviewer", "prompt": "Mode: SLICE\nReview."},
                                role="coordinator")
-        self.assertCopilotDenied(res, "must start with the line 'Caller: shipyard:coordinator'")
+        self.assertCopilotDenied(res, "must start with the line 'Caller: shipyard-coordinator'")
 
     def test_valid_brief_allowed_and_aliases(self):
-        brief = "Caller: shipyard:coordinator\nMode: SLICE\nReview the slice."
+        brief = "Caller: shipyard-coordinator\nMode: SLICE\nReview the slice."
         for name, args in (("task", {"agent_type": "shipyard-code-reviewer", "prompt": brief}),
                            ("runSubagent", {"agentName": "shipyard-code-reviewer", "prompt": brief}),
                            ("agent", {"name": "shipyard:code-reviewer", "task": brief})):
@@ -217,7 +217,7 @@ class AgentPayloads(HookTestCase):
 
     def test_bad_mode_denied(self):
         res = self.run_copilot("task", {"agent": "shipyard-architect",
-                                        "prompt": "Caller: shipyard:coordinator\nMode: SLICE\n"}, role="coordinator")
+                                        "prompt": "Caller: shipyard-coordinator\nMode: SLICE\n"}, role="coordinator")
         self.assertCopilotDenied(res, "'Mode: SLICE' is not a mode")
 
     def test_non_shipyard_subagent_ignored(self):
@@ -283,7 +283,7 @@ class SubagentPayloads(HookTestCase):
         self.assertCopilotBlocked(res, "findings file")
 
     def test_rebuttal_mode_from_transcript(self):
-        t = self.repo.write(".ai/transcript.txt", "Caller: shipyard:coordinator\nMode: REBUTTAL\n...")
+        t = self.repo.write(".ai/transcript.txt", "Caller: shipyard-coordinator\nMode: REBUTTAL\n...")
         self.assertAllowed(self.stop(transcriptPath=t))
 
 

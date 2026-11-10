@@ -90,8 +90,8 @@ test('defineWorkflow checks the definition shape', () => {
 
 test('brief(): the header lines are the Shipyard ones, in order', () => {
   const text = brief({ mode: 'SLICE', slice: '01', round: 2, featureBranch: 'f', sliceBranch: 's', diff: true, read: ['a', 'b'], write: ['w'], budgetTurns: 5, text: 'Body.' });
-  assert.equal(text, 'Caller: shipyard:coordinator\nMode: SLICE\nSlice: 01\nRound: 2\nFeature-branch: f\nSlice-branch: s\nDiff: git diff f...s\nRead: a, b\nWrite: w\nBudget: 5 turns\n\nBody.\n');
-  assert.equal(brief({ mode: 'SCAN' }), 'Caller: shipyard:coordinator\nMode: SCAN\n');
+  assert.equal(text, 'Caller: shipyard-coordinator\nMode: SLICE\nSlice: 01\nRound: 2\nFeature-branch: f\nSlice-branch: s\nDiff: git diff f...s\nRead: a, b\nWrite: w\nBudget: 5 turns\n\nBody.\n');
+  assert.equal(brief({ mode: 'SCAN' }), 'Caller: shipyard-coordinator\nMode: SCAN\n');
 });
 
 test('agent names: both registry prefixes map to shipyard-<short>', () => {

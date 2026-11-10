@@ -5,7 +5,7 @@ from helpers import HookTestCase
 C = "shipyard:coordinator"
 
 
-def brief(mode, round_=None, caller="Caller: shipyard:coordinator", extra=""):
+def brief(mode, round_=None, caller="Caller: shipyard-coordinator", extra=""):
     lines = [caller] if caller else []
     if mode is not None:
         lines.append("Mode: %s" % mode)

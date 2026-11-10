@@ -136,7 +136,7 @@ class RebuttalMode(HookTestCase):
     def transcript(self, mode):
         p = os.path.join(self.repo.path, "..", "t-%s.jsonl" % mode)
         with open(p, "w", encoding="utf-8") as fh:
-            fh.write('{"type":"user","message":{"content":"Caller: shipyard:coordinator\\nMode: %s\\nSlice: 01"}}\n' % mode)
+            fh.write('{"type":"user","message":{"content":"Caller: shipyard-coordinator\\nMode: %s\\nSlice: 01"}}\n' % mode)
         return os.path.realpath(p)
 
     def test_rebuttal_answer_needs_no_findings_file(self):

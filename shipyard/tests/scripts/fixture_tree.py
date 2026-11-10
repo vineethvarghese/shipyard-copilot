@@ -86,7 +86,7 @@ export const meta = {{
 
 export async function run(ctx) {{
   ctx.phase('One');
-  const r = await ctx.agent('Caller: shipyard:coordinator\\nMode: DEMO', {{ label: 'demo #1', schema: {{ type: 'object', properties: {{}} }} }});
+  const r = await ctx.agent('Caller: shipyard-coordinator\\nMode: DEMO', {{ label: 'demo #1', schema: {{ type: 'object', properties: {{}} }} }});
 {extra}
   return {{ ok: r !== null }};
 }}

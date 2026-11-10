@@ -58,7 +58,7 @@ test('breadth 1 → 3 goldfish whose briefs contain only the request and the len
     // only header lines + lens + request
     const body = c.prompt.split('\n\n').slice(1).join('\n\n').trim();
     assert.equal(body, `Lens: ${/^Lens: (\S+)$/m.exec(c.prompt)[1]}\n\nRequest (verbatim):\n${REQUEST}`);
-    assert.match(c.prompt, /^Caller: shipyard:coordinator\nMode: BRAINSTORM\n/);
+    assert.match(c.prompt, /^Caller: shipyard-coordinator\nMode: BRAINSTORM\n/);
     assert.equal(c.opts.agent, 'shipyard-goldfish');
   }
   const scan = run.calls.find((c) => c.key === 'discovery|SCAN');
@@ -206,7 +206,7 @@ test('agentSelection "prompt" names the agent in a preamble and sends only label
   assert.equal(run.result.status, 'NEEDS_HUMAN');
   const scan = run.calls.find((c) => c.key === 'discovery|SCAN');
   assert.match(scan.prompt, /^Act as `shipyard-discovery`: read .*\.github[\\/]agents[\\/]shipyard-discovery\.agent\.md first/);
-  assert.match(scan.prompt, /\n\nCaller: shipyard:coordinator\nMode: SCAN\n/);
+  assert.match(scan.prompt, /\n\nCaller: shipyard-coordinator\nMode: SCAN\n/);
   assert.deepEqual(Object.keys(scan.opts).sort(), ['label', 'phase', 'schema']);
   await assert.rejects(runWorkflow('discover', { request: 'x', breadth: 0, agentSelection: 'magic' }, {}, {}), /agentSelection must be one of/);
 });

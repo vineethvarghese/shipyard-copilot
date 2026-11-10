@@ -75,7 +75,7 @@ The role becomes `agent_type = shipyard:<role>`, so the per-role tables in the h
 | `test-plan-gate.py` | `preToolUse` on shell, create and edit tools | implementer or verifier writes outside `.ai/` while the active slice's `TEST_PLAN.md` is not `Status: APPROVED` |
 | `secrets-guard.py` | `preToolUse` on create and edit tools | content that looks like a secret written under `.ai/` |
 | `goldfish-blinders.py` | `preToolUse` on read and search tools | the goldfish reading or searching `.ai/` except a `SLICE.md` |
-| `brief-check.py` | `preToolUse` on task and agent tools | the coordinator briefing a Shipyard agent without `Caller: shipyard:coordinator`, a valid `Mode:`, or a `Round:` within the cap |
+| `brief-check.py` | `preToolUse` on task and agent tools | the coordinator briefing a Shipyard agent without `Caller: shipyard-coordinator`, a valid `Mode:`, or a `Round:` within the cap |
 | `findings-gate.py` | `subagentStart`, `subagentStop` | a reviewer stopping without a findings file that parses and was written during this run; sent back at most 3 times (counter in the system temp folder, keyed by session id and reviewer) |
 
 The tool names each matcher lists are in `.github/hooks/shipyard.json`. They cover the names the hooks reference

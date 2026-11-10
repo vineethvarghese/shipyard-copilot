@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """brief-check (PreToolUse, Agent|Task): when the coordinator calls a Shipyard specialist directly, the
-brief must start with `Caller: shipyard:coordinator`, name a valid `Mode:` for that role, and carry a
+brief must start with `Caller: shipyard-coordinator`, name a valid `Mode:` for that role, and carry a
 `Round: n` within the fix-round cap for FIX / FIX_TESTS / RECHECK."""
 
 import json
@@ -45,8 +45,8 @@ def main(ctx):
         return
     prompt = ctx.tool_input.get("prompt")
     prompt = prompt if isinstance(prompt, str) else ""
-    if not prompt.lstrip().startswith("Caller: shipyard:coordinator"):
-        ctx.deny("the brief for %s must start with the line 'Caller: shipyard:coordinator'." % sub)
+    if not prompt.lstrip().startswith("Caller: shipyard-coordinator"):
+        ctx.deny("the brief for %s must start with the line 'Caller: shipyard-coordinator'." % sub)
     reg = load_registry(ctx)
     role_name, role = None, None
     wanted = copilot_hooklib.role_from_name(sub) or sub

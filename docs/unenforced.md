@@ -53,9 +53,8 @@ findings files, evidence) and the rulesets on the remote.
 ## Top risks
 
 1. **Dynamic workflows are a moving target.** Public preview, `--experimental`, authoring API documented mainly by
-   third parties, no headless resume; `ctx.agent`'s `agent` and `model` options are verified on CLI 1.0.108,
-   whether `reasoningEffort` is honoured is (unverified). Mitigation: the prompt files are the always-working
-   fallback.
+   third parties, no headless resume; `ctx.agent`'s `agent`, `model` and `reasoningEffort` options are verified
+   on CLI 1.0.108. Mitigation: the prompt files are the always-working fallback.
 2. **Hook parity across clients.** CLI full, cloud subset (`ask` becomes `deny`, timeouts fail open), VS Code
    agent-scoped only (unverified), JetBrains preview. Mitigation: `check.py --env` prints the effective guardrails
    at startup; this page.
