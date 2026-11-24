@@ -50,6 +50,15 @@ Tool names in the generated files follow the Copilot custom-agents reference: `r
 `execute`, `web`, `todo`, `agent`. Model ids come from `MODEL_MAP` in the generator (empty by default) or
 `--model CLASS=id`.
 
+## Syncing from Shipyard
+
+Last synced with [Shipyard](https://github.com/vineethvarghese/shipyard) at commit `13e2c48` (2026-11-08). To
+resync, diff Shipyard's `agents/`, `skills/`, `contracts/`, `registry/` and `scripts/` against
+`shipyard/source-agents/`, `.github/skills/`, `shipyard/contracts/`, `shipyard/registry/` and `shipyard/scripts/`.
+Copy the changes over, keeping this port's adaptations (`shipyard-<short>` names, repository-relative paths, the
+three modes), run `gen_agents.py`, and update the commit above. Both repositories use the same `state` contract
+(1.3.0): the `activeRole` and `gates` fields this port writes are optional upstream, so `.ai/` moves both ways.
+
 ## The diagram rule
 
 A diagram changes with the behaviour it shows. If your change alters a phase, a gate, a role, a contract, a hook

@@ -86,7 +86,7 @@ value is in questioning the request itself.
 
 ## Step 4 — Convergence (SYNTHESIZE)
 
-Inputs: the goldfish results, the sealed take, `discovery.md`, `PROJECT.md` (C-1..C-9). Write to `concepts.md`:
+Inputs: the goldfish results, the sealed take, `discovery.md`, `PROJECT.md` (C-1..C-10). Write to `concepts.md`:
 
 1. **Cluster.** Group concepts by underlying approach, not by wording. Two goldfish proposing "a cache in front of
    the client" from different lenses are one cluster with two sources. Record each source lens.
