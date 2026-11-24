@@ -64,7 +64,7 @@ Standard library only; pytest for tests.
 ## Phase log
 | Date | Phase | Produced |
 |------|-------|----------|
-| 2026-10-12 | P0 Intake | C-1..C-9, branch `feature/link-expiry` created from `main`, state.json |
+| 2026-10-12 | P0 Intake | C-1..C-10, branch `feature/link-expiry` created from `main`, state.json |
 | 2026-10-12 | P1–P3 Discover | planning/discovery.md, planning/concepts.md, draft ARCHITECTURE/INVARIANTS |
 | 2026-10-12 | P4 Grill | Concept A chosen; G1–G3 answered in one round; frontier empty |
 | 2026-10-13 | P5–P7 Plan | DELIVERY_PLAN.md, slices 01–02, readiness goldfish READY ×2 |

@@ -104,7 +104,7 @@ return exactly that object. When the coordinator calls you directly, end your fi
    verify legacy use is zero → remove. Legacy removal is gated on **measured** zero use, never elapsed time; the
    observability that measures it is itself a slice.
 4. **NEVER assume a predecessor merges unchanged.** Human review alters things.
-5. **Respect C-1..C-9.** They are `SPECIFIED` and outrank your idea of ideal decomposition. If the slice budget forces
+5. **Respect C-1..C-10.** They are `SPECIFIED` and outrank your idea of ideal decomposition. If the slice budget forces
    an unsafe boundary, say so and propose the minimum exception in `exceptionRequests`; never quietly exceed it.
 6. **Size is a review-quality question.** Around ~20 files or line counts well into four figures, re-examine the
    boundary. Isolate mechanical bulk (generated code, fixtures, renames, formatting) in its own slice. When a slice

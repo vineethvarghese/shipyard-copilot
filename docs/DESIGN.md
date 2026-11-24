@@ -153,7 +153,7 @@ shipyard-copilot/
 │  │  ├─ contract-review/ · integration-review/ · reliability-review/ · security-audit/ · simplicity-review/
 │  │  └─ lang-packs/SKILL.md + references/<language>.md
 │  ├─ prompts/                                IDE-mode phase checklists (VS Code/JetBrains); each starts with check.py --phase
-│  │  ├─ shipyard.intake.prompt.md            P0: C-1..C-9 form, branch, breadth → shipyard_state.py init
+│  │  ├─ shipyard.intake.prompt.md            P0: C-1..C-10 form, branch, breadth → shipyard_state.py init
 │  │  ├─ shipyard.discover.prompt.md          P1-P3 driven by the coordinator with subagents; ends at P4 questions
 │  │  ├─ shipyard.plan.prompt.md              P5-P7; ends with PLAN.HUMAN.md shown
 │  │  ├─ shipyard.slice.prompt.md             P9 for one slice; ends with REVIEW.HUMAN.md
@@ -177,7 +177,7 @@ shipyard-copilot/
 │  ├─ rulesets/
 │  │  ├─ main-protection.json                 importable ruleset: PR required, 1 review, checks, no force push, no Copilot bypass
 │  │  └─ feature-branches.json                feature/*: required check shipyard-slice-check, merge commits only
-│  ├─ ISSUE_TEMPLATE/shipyard-intake.yml      cloud-mode P0 form: request, C-1..C-9, breadth, feature branch, base branch
+│  ├─ ISSUE_TEMPLATE/shipyard-intake.yml      cloud-mode P0 form: request, C-1..C-10, breadth, feature branch, base branch
 │  ├─ PULL_REQUEST_TEMPLATE/shipyard-slice.md evidence summary, reviewers run, open findings, human change requests
 │  └─ CODEOWNERS                              .ai/ @<owners>; .github/agents .github/hooks .github/extensions @<owners>
 ├─ shipyard/                                  tool-independent core (mirrors Shipyard's registry/contracts/scripts)
@@ -238,7 +238,7 @@ open one PR per task and runs at most 59 minutes on Actions).
 
 | Gate | Mechanism |
 |---|---|
-| P0 Intake | Issue form `shipyard-intake.yml` (request, C-1..C-9 with defaults, breadth, feature and base branch). Assigning the issue to Copilot with the coordinator agent named in the body starts task 1 (`discover`). |
+| P0 Intake | Issue form `shipyard-intake.yml` (request, C-1..C-10 with defaults, breadth, feature and base branch). Assigning the issue to Copilot with the coordinator agent named in the body starts task 1 (`discover`). |
 | P4 Questions | Task 1 ends by posting the concepts/gaps/questions as a comment on the issue (through the GitHub MCP server, read-only token widened for issues) and uploading `.ai/` as an artifact that `shipyard-notes-sync.yml` commits to the notes branch. The human answers in a comment and re-assigns; task 2 (`plan`) reads the answers. |
 | P8 Plan approval | Task 2 posts `PLAN.HUMAN.md` as a comment. A maintainer adds the label `shipyard:plan-approved` (CODEOWNERS-restricted team). `shipyard-plan-gate.yml` and `check.py` require that label plus the `DELIVERY_PLAN.md` approval line before any slice PR can pass. |
 | Merge | Each slice task opens a PR from `copilot/<slice-branch>` into the feature branch with the slice PR template. Required checks: `shipyard-slice-check`, `shipyard-notes-guard`, the test command. A human review approval is required by the feature-branch ruleset; the human merges with a merge commit (ruleset forbids squash so the evidence summary in the PR body is preserved in the merge commit). Change requests are PR review comments; the agent iterates in the same task. |
